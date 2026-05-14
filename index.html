@@ -472,15 +472,45 @@ function saveHistoricalCierre(f, t, total, ing, egr) {
     });
 }
 
-function openHistoryLoader() { const html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><input type="date" id="old-date"><input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal"><input type="text" id="old-dsc" placeholder="Motivo"><select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select><select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option><option value="TRANSFERENCIA">🏦 TRANSF.</option><option value="TARJETA">💳 TARJETA</option></select><button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button><button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button></div>`; openModal("Carga Histórica", html); }
-function saveOldMove(apply) { 
-    const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value; 
-    const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; if(!d || !a || !s) return showMsg("Faltan datos"); 
-    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), historical: !apply }); 
-    movements.sort((x,y) => new Date(y.date) - new Date(x.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
+function openHistoryLoader() { 
+    const html = `<div class="form-box" style="background:transparent; border:none; padding:0;">
+        <input type="date" id="old-date">
+        <input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
+        <input type="text" id="old-dsc" placeholder="Motivo">
+        <select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select>
+        <select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option><option value="TRANSFERENCIA">🏦 TRANSF.</option><option value="TARJETA">💳 TARJETA</option></select>
+        <button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button>
+        <button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button>
+    </div>`; 
+    openModal("Carga Histórica", html); 
 }
 
-// CIRUGÍA FINAL: Función para resetear ganancia a cero marcando el momento actual
+// CIRUGÍA AQUÍ: Corregido el parámetro 'apply' para que afecte caja correctamente
+function saveOldMove(apply) { 
+    const d = document.getElementById('old-date').value, 
+          a = cleanAmount(document.getElementById('old-amt').value), 
+          s = document.getElementById('old-dsc').value; 
+    const t = document.getElementById('old-type').value, 
+          m = document.getElementById('old-method').value; 
+    
+    if(!d || !a || !s) return showMsg("Faltan datos"); 
+    
+    movements.unshift({ 
+        id: Date.now(), 
+        type: t, 
+        amount: a, 
+        desc: s, 
+        method: m, 
+        date: new Date(d + "T12:00:00").toISOString(), 
+        historical: !apply // Si apply es true, historical es false (afecta caja)
+    }); 
+    
+    movements.sort((x,y) => new Date(y.date) - new Date(x.date)); 
+    localStorage.setItem('copo_data', JSON.stringify(movements)); 
+    updateUI(); 
+    closeModal('history-modal'); 
+}
+
 function resetProfit() { 
     showConfirm("¿Deseas resetear la Ganancia Neta a ₡0,00? (Esto no borra tus saldos ni tu historial, solo marca este momento como el nuevo inicio del día).", () => { 
         lastResetDate = new Date().toISOString(); 
@@ -492,3 +522,4 @@ function resetProfit() {
 </script>
 </body>
 </html>
+
