@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión Total</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
+body.modal-open { overflow: hidden; }
+
+.admin-container { max-width: 600px; margin: 0 auto; display: none; }
+#login-screen { max-width: 300px; margin: 100px auto; text-align: center; }
+.pin-input { width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; color: white; margin-bottom: 20px; }
+
+header { border-bottom: 2px solid #0026ff; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+.logo-container { display: flex; align-items: center; gap: 15px; }
+.logo-small { font-weight: bold; border: 2px solid white; padding: 4px 8px; cursor: pointer; }
+.logo-img { max-height: 45px; max-width: 140px; object-fit: contain; cursor: pointer; }
+.owner-text { font-size: 0.9rem; font-weight: bold; color: #888; border-left: 1px solid #333; padding-left: 15px; }
+.logo-login { max-height: 100px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; cursor: pointer; }
+
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+.tab-btn { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; }
+.tab-btn.active { background: #0026ff; border-color: #0026ff; }
+
+.dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
+.card { background: #1a1a1a; padding: 12px; border-radius: 12px; border: 1px solid #333; text-align: center; position: relative; }
+.card h3 { margin: 0; font-size: 0.7rem; color: #888; text-transform: uppercase; }
+.card p { margin: 8px 0 0; font-size: 1.1rem; font-weight: bold; }
+
+.profit { color: #25D366; } .expense { color: #ff3b3b; } .adj-color { color: #0026ff; } .bank-color { color: #25D366; } .cash-color { color: #ff9900; }
+.balance { grid-column: span 2; border: 1px solid #0026ff; background: rgba(0, 38, 255, 0.05); }
+.profit-card { grid-column: span 2; border: 1px solid #25D366; background: rgba(37, 211, 102, 0.05); }
+
+.form-box { background: #1a1a1a; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #333; }
+input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #0b0b0b; color: white; box-sizing: border-box; outline: none; }
+
+.btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; font-size: 0.9rem; margin-bottom: 10px; transition: 0.3s; }
+.btn-in { background: #25D366; } .btn-out { background: #ff3b3b; } .btn-adj { background: #0026ff; }
+.btn-pay { background: #0026ff; } .btn-advance { background: #ff3b3b; }
+.btn-aguinaldo { background: #ff9900; }
+
+.btn-danger-clear { background: #331111; color: #ff3b3b; width: 100%; padding: 18px; border-radius: 10px; cursor: pointer; border: 1px solid #442222; font-weight: bold; font-size: 0.8rem; margin-top: 50px; text-transform: uppercase; transition: 0.3s; }
+.btn-danger-clear:active { background: #ff3b3b; color: white; }
+
+.warning-box-full { color: #ff3b3b; text-align: center; }
+
+.history-wrapper { background: #1a1a1a; border-radius: 12px; border: 1px solid #333; max-height: 350px; overflow-y: auto; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { padding: 10px; text-align: left; color: #888; border-bottom: 1px solid #333; white-space: nowrap; }
+td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
+
+.img-preview-mini { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 1px solid #333; }
+.btn-add-img { color: #0026ff; font-size: 1.2rem; cursor: pointer; background: none; border: none; }
+
+.staff-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+.staff-header-bar { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.staff-content { display: none; padding: 15px; background: #111; border-top: 1px solid #333; }
+.staff-bar.active .staff-content { display: block; }
+.btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-left: 8px; }
+
+.modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); padding: 10px; box-sizing: border-box; align-items: center; justify-content: center; }
+.modal-content-wrapper { position: relative; background: #1a1a1a; width: 100%; max-width: 500px; padding: 20px; border-radius: 15px; border: 1px solid #333; margin: auto; max-height: 90vh; overflow-y: auto; }
+.close-x { position: absolute; top: 10px; right: 15px; color: #ff3b3b; font-size: 1.8rem; cursor: pointer; font-weight: bold; z-index: 100; }
+
+.toggle-box { display: flex; align-items: center; justify-content: space-between; background: #000; padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #222; }
+.toggle-box span { font-size: 0.75rem; font-weight: bold; color: #888; }
+.switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 20px; }
+.slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #0026ff; }
+input:checked + .slider:before { transform: translateX(20px); }
+.input-label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-align: left; }
+</style>
+</head>
+<body id="main-body">
+
+<div id="login-screen">
+<div id="login-logo-area"></div>
+<input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
+<button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
+</div>
+
+<div class="admin-container" id="admin-panel">
+<header>
+<div class="logo-container" id="header-logo-area"></div>
+<div style="display: flex; align-items: center;">
+<button id="config-tab-btn" onclick="showTab('configuracion')" style="background:none; border:none; color:#555; cursor:pointer; font-size: 1.2rem; margin-right: 15px;"><i class="fas fa-cog"></i></button>
+<button onclick="logout()" style="background:none; border:none; color:#555; cursor:pointer;">Cerrar</button>
+</div>
+</header>
+
+<div class="tabs">
+<button class="tab-btn active" id="btn-tab-contabilidad" onclick="showTab('contabilidad')">CONTABILIDAD</button>
+<button class="tab-btn" id="btn-tab-planilla" onclick="showTab('planilla')">PLANILLA</button>
+</div>
+
+<div id="tab-contabilidad">
+<div class="dashboard">
+<div class="card profit-card">
+<button class="btn-icon" style="color:#3498db; margin:0; position: absolute; left: 10px; top: 10px;" onclick="openHistoryLoader()"><i class="fas fa-calendar-plus"></i></button>
+<div style="position: absolute; right: 10px; top: 10px;">
+<button class="btn-icon" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()"><i class="fas fa-search"></i></button>
+<button class="btn-icon" style="color:#ff9900; margin:0;" onclick="openCierreHistory()"><i class="fas fa-history"></i></button>
+<button class="btn-icon" style="color:#ff3b3b; margin:0;" onclick="closePeriod()"><i class="fas fa-lock"></i></button>
+</div>
+<h3>Ganancia Neta</h3><p id="net-profit">₡0</p>
+</div>
+<div id="cierre-search" class="search-box-inline" style="grid-column: span 2; display:none; background:#000; padding:10px; border-radius:10px; margin-bottom:10px;">
+<div style="display:flex; gap:5px;">
+<input type="date" id="c-from" style="margin:0;"><input type="date" id="c-to" style="margin:0;">
+<button class="btn btn-in" style="margin:0; padding:0 10px;" onclick="searchInPeriod()"><i class="fas fa-check"></i></button>
+</div>
+</div>
+<div class="card balance"><h3>Capital Actual</h3><p id="total-balance">₡0</p></div>
+<div class="card"><h3>En Banco</h3><p class="bank-color" id="val-bank">₡0</p></div>
+<div class="card"><h3>En Efectivo</h3><p class="cash-color" id="val-cash">₡0</p></div>
+</div>
+
+<div class="form-box">
+<input type="text" id="amount" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
+<input type="text" id="desc" placeholder="Motivo...">
+<button class="btn btn-in" onclick="openMethodModal('IN')">REGISTRAR INGRESO</button>
+<button class="btn btn-out" onclick="openMethodModal('OUT')">REGISTRAR EGRESO</button>
+<button class="btn btn-adj" onclick="openAdjModal()">AJUSTE DE CAPITAL</button>
+</div>
+
+<div style="margin-bottom:15px; background:#1a1a1a; padding:10px; border-radius:10px;">
+<input type="text" id="buscador" onkeyup="filtrarMovimientos()" placeholder="🔍 Buscar motivo o método..." style="margin:0; width:100%;">
+</div>
+
+<div class="history-wrapper">
+<table>
+<thead><tr><th>Fecha</th><th>Motivo</th><th style="text-align:center">Fact.</th><th style="text-align:right">Monto</th><th></th></tr></thead>
+<tbody id="history-body"></tbody>
+</table>
+</div>
+</div>
+
+<div id="tab-planilla" style="display:none;">
+<div class="form-box">
+<input type="text" id="staff-name" placeholder="Nombre">
+<input type="text" id="staff-rate" placeholder="Precio hora (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
+<button class="btn btn-adj" onclick="addStaff()">AGREGAR EMPLEADO</button>
+</div>
+<div id="staff-list"></div>
+</div>
+
+<div id="tab-configuracion" style="display:none;">
+<div class="form-box">
+<h4 style="margin-top:0; color:#0026ff;">Identidad</h4>
+<label class="input-label">Logo</label>
+<label class="file-label" for="business-logo-input" style="border-style: solid; background: #0b0b0b; padding: 15px; text-align: center; border-radius: 12px; cursor: pointer; display: block; border: 1px solid #444; color: #eee; font-weight: bold; margin-bottom: 12px;">
+<i class="fas fa-image" style="margin-right: 8px; color: #25D366;"></i> SUBIR LOGO
+</label>
+<input type="file" id="business-logo-input" accept="image/*" style="display:none" onchange="updateBusinessLogo(this)">
+<label class="input-label">Nombre del Negocio</label>
+<input type="text" id="biz-name-input">
+<label class="input-label">Nombre del Dueño</label>
+<input type="text" id="owner-name-input">
+<button class="btn btn-in" onclick="saveBusinessIdentity()">GUARDAR CAMBIOS</button>
+</div>
+<div class="form-box">
+<h4 style="margin-top:0; color:#ff9900;">Seguridad</h4>
+<label class="input-label">PIN Actual</label>
+<input type="password" id="current-pin-input" placeholder="Ingrese PIN actual" maxlength="4" inputmode="numeric">
+<label class="input-label">Nuevo PIN</label>
+<input type="password" id="new-pin-input" placeholder="Ingrese nuevo PIN" maxlength="4" inputmode="numeric">
+<button class="btn btn-adj" onclick="changePin()">CAMBIAR PIN</button>
+<button class="btn-danger-clear" onclick="confirmFullReset()">Borrar todo el sistema</button>
+</div>
+</div>
+</div>
+
+<input type="file" id="table-file-input" accept="image/*" style="display:none" onchange="processTableFile(this)">
+
+<div id="imgModal" class="modal" style="z-index: 10000;"><div class="modal-content-wrapper" style="max-width: 95vw; padding: 5px;"><span class="close-x" onclick="closeModal('imgModal')">×</span><img id="imgZoom" style="width:100%; border-radius:10px; display: block;"></div></div>
+<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
+<div id="adj-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeAdjModal()">×</span><h3 style="color:white;">Ajuste Capital</h3><button class="btn btn-in" onclick="executeEntry('EFECTIVO', 'ADJ_IN')">+ Efectivo</button><button class="btn btn-in" onclick="executeEntry('BANCO', 'ADJ_IN')">+ Banco</button><hr style="border:1px solid #333;"><button class="btn btn-out" onclick="executeEntry('EFECTIVO', 'ADJ_OUT')">- Efectivo</button><button class="btn btn-out" onclick="executeEntry('BANCO', 'ADJ_OUT')">- Banco</button></div></div>
+<div id="history-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('history-modal')">×</span><h3 id="modal-title" style="color:white; margin-bottom:15px;"></h3><div id="modal-content"></div></div></div>
+<div id="custom-dialog" class="modal"><div class="modal-content-wrapper" style="text-align:center;"><h3 id="dialog-title">Aviso</h3><div id="dialog-msg" style="color:#ccc; margin-bottom: 20px;"></div><div id="dialog-buttons" style="display:flex; gap:10px; margin-top:20px;"></div></div></div>
+
+<script>
+let secure_pin_hash = localStorage.getItem('copo_pin_hash') || "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
+let movements = JSON.parse(localStorage.getItem('copo_data')) || [];
+let staff = JSON.parse(localStorage.getItem('copo_staff')) || [];
+let cierres = JSON.parse(localStorage.getItem('copo_cierres')) || [];
+let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
+let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
+let pendingType = "", currentBase64 = "", activeMovementId = null, activeStaffIndex = null;
+
+window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); };
+
+function applyBusinessIdentity() {
+const loginArea = document.getElementById('login-logo-area');
+const headerArea = document.getElementById('header-logo-area');
+let logoHtml = bizData.logo ? <img src="${bizData.logo}" class="logo-img" onclick="zoomImage('${bizData.logo}')"> : <span class="logo-small"&gt;${bizData.name}</span>; headerArea.innerHTML =<div class="logo-container">${logoHtml}${bizData.owner ? <span class="owner-text"&gt;${bizData.owner}</span>: ""}&lt;/div>;
+loginArea.innerHTML = bizData.logo ? <img src="${bizData.logo}" class="logo-login" onclick="zoomImage('${bizData.logo}')"> : <div class="logo-small" style="margin-bottom:20px;"&gt;${bizData.name}</div>`;
+}
+
+function updateBusinessLogo(input) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { bizData.logo = e.target.result; }; reader.readAsDataURL(file); } }
+function saveBusinessIdentity() { bizData.name = document.getElementById('biz-name-input').value || "CoPo Admin"; bizData.owner = document.getElementById('owner-name-input').value; localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); applyBusinessIdentity(); showMsg("Guardado."); }
+
+async function hashPin(pin) { const msgUint8 = new TextEncoder().encode(pin); const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8); return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join(''); }
+async function validatePin() { const hashed = await hashPin(document.getElementById('pin').value); if (hashed === secure_pin_hash) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-panel').style.display = 'block'; updateUI(); renderStaff(); } else { showMsg("PIN Incorrecto"); document.getElementById('pin').value = ""; } }
+
+async function changePin() {
+const currentPin = document.getElementById('current-pin-input').value;
+const newPin = document.getElementById('new-pin-input').value;
+if(currentPin.length !== 4 || newPin.length !== 4) return showMsg("Ambos PIN deben ser de 4 dígitos");
+const hashedCurrent = await hashPin(currentPin);
+if(hashedCurrent !== secure_pin_hash) { return showMsg("El PIN actual es incorrecto"); }
+secure_pin_hash = await hashPin(newPin);
+localStorage.setItem('copo_pin_hash', secure_pin_hash);
+document.getElementById('current-pin-input').value = "";
+document.getElementById('new-pin-input').value = "";
+showMsg("PIN actualizado con éxito.");
+}
+
+function getFormatedDate(d) {
+let date = new Date(d);
+const days = ['dom','lun','mar','mié','jue','vie','sáb'];
+let dayName = days[date.getDay()];
+let day = date.getDate().toString().padStart(2, '0');
+let month = (date.getMonth() + 1).toString().padStart(2, '0');
+let year = date.getFullYear();
+let hours = date.getHours();
+let minutes = date.getMinutes().toString().padStart(2, '0');
+let ampm = hours >= 12 ? 'pm' : 'am';
+hours = hours % 12 || 12;
+return ``${dayName} {month}/{hours}:{ampm}`;
+}
+
+function formatDateSlash(isoString) {
+let d = new Date(isoString + "T12:00:00");
+let day = d.getDate().toString().padStart(2, '0');
+let month = (d.getMonth() + 1).toString().padStart(2, '0');
+return ${day}/${month}/${d.getFullYear()}`;
+}
+
+function getFormatedTime(h) { const totalMin = Math.round(h * 60); return ``${Math.floor(totalMin/60)}h ${totalMin%60}m; }
+function formatVisual(num) { return Math.round(num || 0).toLocaleString('es-CR'); }
+function cleanAmount(val) { return parseFloat(val.toString().replace(/./g, "").replace(/,/g, ".")) || 0; }
+
+function updateUI() {
+const body = document.getElementById('history-body'); body.innerHTML = "";
+let tin = 0, tout = 0, mBank = 0, mCash = 0;
+movements.forEach(m => {
+let effect = (m.type === 'IN' || m.type === 'ADJ_IN') ? m.amount : -m.amount;
+if (!m.historical) { if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; }
+if (m.date > lastResetDate && !m.historical) { if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; }
+let colorClass = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
+const imgBtn = m.img ? <img src="${m.img}" class="img-preview-mini" onclick="zoomImage('{m.id})"><i class="fas fa-plus-circle"></i></button>; body.innerHTML +=<tr><td style="white-space:nowrap">{m.desc}<br><small>{imgBtn}</td><td class="{formatVisual(effect)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteMovement(${m.id})"&gt;&lt;i class="fas fa-trash"&gt;&lt;/i&gt;&lt;/button&gt;&lt;/td&gt;&lt;/tr>;
+});
+document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank);
+document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash);
+document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash);
+document.getElementById('net-profit').innerText = "₡" + formatVisual(tin - tout);
+}
+
+function triggerFileSelect(id, staffIdx = null) {
+activeMovementId = id;
+activeStaffIndex = staffIdx;
+document.getElementById('table-file-input').click();
+}
+
+function processTableFile(input) {
+const file = input.files[0];
+if (file && activeMovementId) {
+const reader = new FileReader();
+reader.onload = (e) => {
+if (activeStaffIndex !== null) {
+const idx = staff[activeStaffIndex].shifts.findIndex(sh => sh.id === activeMovementId);
+if (idx !== -1) {
+staff[activeStaffIndex].shifts[idx].img = e.target.result;
+saveStaff();
+closeModal('history-modal');
+openStaffHistory(activeStaffIndex);
+}
+} else {
+const index = movements.findIndex(m => m.id === activeMovementId);
+if (index !== -1) {
+movements[index].img = e.target.result;
+localStorage.setItem('copo_data', JSON.stringify(movements));
+updateUI();
+}
+}
+activeMovementId = null; activeStaffIndex = null; input.value = "";
+};
+reader.readAsDataURL(file);
+}
+}
+
+function filtrarMovimientos() {
+const v = document.getElementById('buscador').value.toLowerCase();
+Array.from(document.getElementById('history-body').rows).forEach(r => {
+r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none";
+});
+}
+
+function renderStaff() {
+const list = document.getElementById('staff-list'); list.innerHTML = "";
+staff.forEach((s, i) => {
+let aguinaldoTotal = 0, sueldoTotal = 0;
+s.shifts.forEach(sh => {
+if(sh.type === 'AGUINALDO') aguinaldoTotal += sh.earned;
+else if(sh.type === 'SHIFT' || sh.type === 'ADVANCE') sueldoTotal += sh.earned;
+else if(sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned;
+else if(sh.type === 'PAYMENT_SUELDO') sueldoTotal += sh.earned;
+});
+list.innerHTML += <div class="staff-bar"&gt;&lt;div class="staff-header-bar" onclick="toggleStaff(${i})"><b>{formatVisual(sueldoTotal)}</span>latex
+{aguinaldoTotal &gt; 0 ? `<br&gt;&lt;span style="font-size:0.75rem; color:#ff9900"&gt;Agui: ₡
+
+{formatVisual(aguinaldoTotal)}</span>: ''}&lt;/div&gt;&lt;/div&gt;&lt;div class="staff-content"&gt;&lt;p style="font-size:0.8rem; color:#888;"&gt;Tarifa: ₡${formatVisual(s.rate)}/h</p><div class="toggle-box"><span>Pago Horas Extras (x1.5)</span><label class="switch"><input type="checkbox" ${s.useExtras ? 'checked' : ''} onchange="toggleFeature(${i}, 'useExtras')"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; margin-bottom:15px;"><button class="btn-icon" style="color:#ff9900" onclick="openAguinaldoCalc(${i})"&gt;&lt;i class="fas fa-piggy-bank"&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class="btn-icon" style="color:#3498db" onclick="openStaffHistory(${i})"><i class="fas fa-history"></i></button><button class="btn-icon" style="color:#25D366" onclick="checkPeriodStaff(${i})"&gt;&lt;i class="fas fa-search"&gt;&lt;/i&gt;&lt;/button&gt;&lt;button class="btn-icon" style="color:#0026ff" onclick="updateStaffRate(${i})"><i class="fas fa-tag"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaff(${i})"&gt;&lt;i class="fas fa-trash"&gt;&lt;/i&gt;&lt;/button&gt;&lt;/div&gt;&lt;label class="input-label"&gt;Hora Entrada&lt;/label&gt;&lt;input type="datetime-local" id="dt-in-${i}" style="margin-bottom:10px;"><label class="input-label">Hora Salida</label><input type="datetime-local" id="dt-out-${i}"&gt;&lt;button class="btn btn-in" style="margin-top:10px;" onclick="addHours(${i})">ANOTAR TURNO</button><div style="background:#000; padding:15px; border-radius:10px; margin-top:10px;"><input type="text" id="adv-desc-${i}" placeholder="Motivo de adelanto..." style="margin-bottom:8px;"&gt;&lt;input type="text" id="adv-amt-${i}" placeholder="₡ Monto Adelanto" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-advance" onclick="giveAdvance(${i})"&gt;REGISTRAR ADELANTO&lt;/button&gt;&lt;/div&gt;&lt;button class="btn btn-pay" style="margin-top:10px;" onclick="resetDebt(${i})">PAGAR SUELDO</button>${aguinaldoTotal &gt; 0 ?<button class="btn btn-aguinaldo" onclick="payAguinaldoOnly(${i})"&gt;PAGAR AGUINALDO&lt;/button> : ''}</div></div>`;
+});
+}
+
+function openStaffHistory(i) {
+let h = <div class="history-wrapper"&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Fecha&lt;/th&gt;&lt;th&gt;Detalle&lt;/th&gt;&lt;th style="text-align:center"&gt;Fact.&lt;/th&gt;&lt;th style="text-align:right"&gt;Monto&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody>;
+staff[i].shifts.forEach(sh => {
+let det = "";
+let colorClass = sh.earned >= 0 ? 'profit' : 'expense';
+if(sh.type === 'SHIFT') det = ``${getFormatedTime(sh.ord)} ord {sh.desc || "Adelanto"}; else if(sh.type === 'AGUINALDO') det =<i class="fas fa-piggy-bank"></i> latex
+{sh.desc}`; else if(sh.type === 'PAYMENT_SUELDO') { det = `<i class="fas fa-check"&gt;&lt;/i&gt; 
+
+{sh.desc}; colorClass = 'adj-color'; } else if(sh.type === 'PAYMENT_AGUINALDO') { det =<i class="fas fa-gift"></i> Pago Aguinaldo; colorClass = 'adj-color'; } const imgBtn = sh.img ?:<button class="btn-add-img" onclick="triggerFileSelect({i})"><i class="fas fa-plus-circle"></i></button>; h +=<tr><td style="white-space:nowrap">{det}</td><td style="text-align:center">{colorClass}" style="text-align:right; font-weight:bold;">₡latex
+{formatVisual(sh.earned)}&lt;/td&gt;&lt;td style="text-align:right"&gt;&lt;button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaffMovement(
+
+{i}, ${sh.id})"&gt;&lt;i class="fas fa-trash"&gt;&lt;/i&gt;&lt;/button&gt;&lt;/td&gt;&lt;/tr>;
+});
+openModal("Actividad: " + staff[i].name, h + "</tbody></table></div>");
+}
+
+function deleteStaffMovement(staffIndex, moveId) {
+showConfirm("¿Eliminar este registro? El saldo se ajustará.", () => {
+const move = staff[staffIndex].shifts.find(sh => sh.id === moveId);
+if (move) {
+staff[staffIndex].debt -= move.earned;
+staff[staffIndex].shifts = staff[staffIndex].shifts.filter(sh => sh.id !== moveId);
+saveStaff(); renderStaff(); closeModal('history-modal'); openStaffHistory(staffIndex);
+}
+});
+}
+
+function addHours(i) {
+const s = staff[i], inV = document.getElementById(dt-in-${i}).value, outV = document.getElementById(dt-out-{i}).value = ""; document.getElementById(dt-out-${i}).value = "";
+}
+
+function giveAdvance(i) {
+const amt = cleanAmount(document.getElementById(adv-amt-${i}).value); const dsc = document.getElementById(adv-desc-{i}).value = ""; document.getElementById(adv-desc-${i}).value = "";
+}
+
+function resetDebt(i) {
+let tOrd = 0, tExt = 0, sueldoPuro = 0;
+staff[i].shifts.forEach(sh => {
+if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; }
+if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; }
+});
+if(sueldoPuro <= 0) return showMsg("No hay sueldo pendiente.");
+let detail = Sueldo:${getFormatedTime(tOrd)} ord+ (tExt &gt; 0 ? + {formatVisual(sueldoPuro)}?`, () => {
+staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "" });
+staff[i].debt -= sueldoPuro; saveStaff(); renderStaff();
+});
+}
+
+function payAguinaldoOnly(i) {
+let aguinaldoTotal = 0;
+staff[i].shifts.forEach(sh => { if(sh.type === 'AGUINALDO' || sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned; });
+if(aguinaldoTotal <= 0) return showMsg("No hay aguinaldo pendiente.");
+showConfirm(¿Pagar aguinaldo de ₡${formatVisual(aguinaldoTotal)}?`, () => {
+staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -aguinaldoTotal, type: 'PAYMENT_AGUINALDO', img: "" });
+staff[i].debt -= aguinaldoTotal; saveStaff(); renderStaff();
+});
+}
+
+function openAguinaldoCalc(i) {
+const html = <div style="text-align:center;"&gt;&lt;p&gt;Cálculo 8.33%&lt;/p&gt; &lt;input type="date" id="ag-from"&gt; &lt;input type="date" id="ag-to"&gt; &lt;button class="btn btn-adj" onclick="calcAguinaldo833(${i})">CALCULAR</button>
+<div id="ag-res"></div></div>`;
+openModal("Aguinaldo", html);
+}
+
+function calcAguinaldo833(i) {
+const fV = document.getElementById('ag-from').value, tV = document.getElementById('ag-to').value;
+if(!fV || !tV) return showMsg("Fechas incompletas");
+const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime();
+let totalS = 0;
+staff[i].shifts.forEach(sh => {
+const sD = new Date(sh.date).getTime();
+if(sD >= f && sD <= t && sh.earned > 0 && sh.type === 'SHIFT') totalS += sh.earned;
+});
+const monto = totalS * 0.0833;
+document.getElementById('ag-res').innerHTML = &lt;h2 class="profit"&gt;₡${formatVisual(monto)}</h2>
+<button class="btn btn-in" onclick="addAguinaldoToStaff(${i}, ${monto}, '${fV}', '${tV}')">AGREGAR A PLANILLA</button>
+`;
+}
+
+function addAguinaldoToStaff(i, monto, f, t) {
+if(monto <= 0) return showMsg("Monto en 0");
+staff[i].debt += monto;
+const desc = Aguinaldo del${formatDateSlash(f)} al ${formatDateSlash(t)};
+staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: monto, type: 'AGUINALDO', desc: desc, img: "" });
+saveStaff(); renderStaff(); closeModal('history-modal');
+}
+
+function openModal(t, c) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerHTML = c; document.getElementById('history-modal').style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+function zoomImage(s) { document.getElementById('imgZoom').src = s; document.getElementById('imgModal').style.display = 'flex'; }
+function showMsg(msg) { document.getElementById('dialog-title').innerText = "Aviso"; document.getElementById('dialog-msg').innerText = msg; document.getElementById('dialog-buttons').innerHTML = <button class="btn btn-adj" onclick="closeDialog()"&gt;OK&lt;/button>; document.getElementById('custom-dialog').style.display = 'flex'; }
+function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; document.getElementById('dialog-buttons').innerHTML = <button class="btn btn-adj" style="flex:1" onclick="closeDialog()"&gt;NO&lt;/button&gt;&lt;button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()"&gt;SÍ&lt;/button>; window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; }
+function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
+function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
+function formatCurrencyInput(input) { let value = input.value.replace(/[^0-9,]/g, ""); const parts = value.split(','); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); input.value = parts.length > 1 ? parts[0] + ',' + parts[1].slice(0,2) : parts[0]; }
+function saveStaff() { localStorage.setItem('copo_staff', JSON.stringify(staff)); }
+function toggleStaff(i) { document.querySelectorAll('.staff-bar')[i].classList.toggle('active'); }
+function toggleFeature(i, f) { staff[i][f] = !staff[i][f]; saveStaff(); }
+function logout() { location.reload(); }
+function openMethodModal(t) { if(!document.getElementById('amount').value) return showMsg("Monto vacío"); pendingType = t; document.getElementById('method-modal').style.display = 'flex'; }
+function closeMethodModal() { document.getElementById('method-modal').style.display = 'none'; }
+function openAdjModal() { if(!document.getElementById('amount').value) return showMsg("Monto vacío"); document.getElementById('adj-modal').style.display = 'flex'; }
+function closeAdjModal() { document.getElementById('adj-modal').style.display = 'none'; }
+function executeEntry(m, ot = null) {
+const t = ot || pendingType;
+movements.unshift({ id: Date.now(), type: t, amount: cleanAmount(document.getElementById('amount').value), desc: document.getElementById('desc').value, method: m, date: new Date().toISOString(), img: "" });
+localStorage.setItem('copo_data', JSON.stringify(movements));
+updateUI(); closeMethodModal(); closeAdjModal();
+document.getElementById('amount').value = ""; document.getElementById('desc').value = "";
+}
+function deleteMovement(id) { showConfirm("¿Eliminar?", () => { movements = movements.filter(m => m.id !== id); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }); }
+function addStaff() {
+const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value);
+if(!n || !r) return;
+staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true });
+saveStaff(); renderStaff();
+document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = "";
+}
+function deleteStaff(i) { showConfirm("¿Eliminar?", () => { staff.splice(i,1); saveStaff(); renderStaff(); }); }
+function updateStaffRate(i) { const html = <div style="text-align:center;"&gt;&lt;p&gt;Nueva tarifa para &lt;b&gt;${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Nueva Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(latex
+{i})"&gt;GUARDAR&lt;/button&gt;&lt;/div>`; openModal("Ajustar Precio Hora", html); } function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val &gt; 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); } } function checkPeriodStaff(i) { openModal(`Consulta: 
+
+{staff[i].name},<input type="date" id="p-from"><input type="date" id="p-to"><button class="btn btn-adj" onclick="calcPeriodStaff(latex
+{i})"&gt;CALCULAR&lt;/button&gt;&lt;div id="p-res"&gt;&lt;/div>`); } function calcPeriodStaff(i) { const f = new Date(document.getElementById('p-from').value + "T00:00:00").getTime(), t = new Date(document.getElementById('p-to').value + "T23:59:59").getTime(); let m = 0; staff[i].shifts.forEach(sh =&gt; { const sD = new Date(sh.date).getTime(); if(sD &gt;= f && sD &lt;= t) m += sh.earned; }); document.getElementById('p-res').innerHTML = `<hr&gt;&lt;h3&gt;₡
+
+{formatVisual(m)}</h3>`; }
+function showTab(t) { document.getElementById('tab-contabilidad').style.display = t === 'contabilidad' ? 'block' : 'none'; document.getElementById('tab-planilla').style.display = t === 'planilla' ? 'block' : 'none'; document.getElementById('tab-configuracion').style.display = t === 'configuracion' ? 'block' : 'none'; document.getElementById('btn-tab-contabilidad').classList.toggle('active', t === 'contabilidad'); document.getElementById('btn-tab-planilla').classList.toggle('active', t === 'planilla'); }
+
+function confirmFullReset() {
+const adv = &lt;div class="warning-box-full"&gt; &lt;i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px; color:#ff3b3b;"&gt;&lt;/i&gt;&lt;br&gt; &lt;b style="font-size: 1.2rem;"&gt;¡ATENCIÓN!&lt;/b&gt;&lt;br&gt;&lt;br&gt; Esta acción borrará permanentemente toda la contabilidad, empleados e historial.&lt;br&gt;&lt;br&gt; &lt;b&gt;¿Realmente desea eliminar TODO el sistema?&lt;/b&gt; &lt;/div&gt;;
+showConfirm(adv, () => { localStorage.clear(); location.reload(); });
+}
+
+function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
+
+function openCierreHistory() {
+let h = <div class="history-wrapper"&gt;&lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;Fecha&lt;/th&gt;&lt;th&gt;Ganancia&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;tbody>;
+cierres.forEach(c => {
+h += <tr&gt;&lt;td&gt;${getFormatedDate(c.date)}</td><td class="profit">₡${formatVisual(c.totalNeto)}&lt;/td&gt;&lt;td style="text-align:right"&gt;&lt;button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+});
+openModal("Cierres", h + "</tbody></table></div>");
+}
+
+function deleteCierre(id) {
+showConfirm("¿Eliminar este cierre del historial?", () => {
+cierres = cierres.filter(c => c.id !== id);
+localStorage.setItem('copo_cierres', JSON.stringify(cierres));
+showMsg("Cierre eliminado.");
+closeModal('history-modal');
+openCierreHistory();
+});
+}
+
+function closePeriod() { showConfirm("¿Cerrar periodo?", () => { let ti = 0, to = 0; movements.forEach(m => { if(m.date > lastResetDate && !m.historical) { if(m.type==='IN') ti+=m.amount; else if(m.type==='OUT') to+=m.amount; } }); cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: ti-to }); lastResetDate = new Date().toISOString(); localStorage.setItem('copo_last_reset', lastResetDate); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); updateUI(); }); }
+
+function searchInPeriod() {
+const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value;
+if(!f || !t) return showMsg("Faltan fechas");
+let i=0, e=0;
+const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString();
+movements.forEach(m => { if(m.date >= fT && m.date <= tT) { if(m.type.includes('IN')) i+=m.amount; else e+=m.amount; } });
+const ganancia = i - e;
+openModal("Reporte de Periodo", &lt;div style="text-align:center;"&gt; &lt;h3 class="profit"&gt;Balance: ₡${formatVisual(ganancia)}</h3>
+<p>Ingresos: ₡{formatVisual(e)}</p>
+<hr style="border:1px solid #333; margin:15px 0;">
+<button class="btn btn-in" onclick="saveHistoricalCierre('{t}', ${ganancia})"&gt;REGISTRAR COMO CIERRE DE PERIODO&lt;/button&gt; &lt;/div&gt;);
+}
+
+function saveHistoricalCierre(f, t, total) {
+showConfirm(¿Guardar este reporte como un cierre histórico del${f} al latex
+{t}?`, () =&gt; { cierres.unshift({ id: Date.now(), date: new Date(t + "T23:59:59").toISOString(), totalNeto: total, note: `Periodo: 
+
+{f} al ${t}` });
+cierres.sort((x, y) => new Date(y.date) - new Date(x.date));
+localStorage.setItem('copo_cierres', JSON.stringify(cierres));
+showMsg("Cierre guardado y ordenado en el historial.");
+closeModal('history-modal');
+});
+}
+
+function openHistoryLoader() { const html = <div class="form-box" style="background:transparent; border:none; padding:0;"&gt;&lt;input type="date" id="old-date"&gt;&lt;input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal"&gt;&lt;input type="text" id="old-dsc" placeholder="Motivo"&gt;&lt;select id="old-type"&gt;&lt;option value="OUT"&gt;Egreso&lt;/option&gt;&lt;option value="IN"&gt;Ingreso&lt;/option&gt;&lt;/select&gt;&lt;select id="old-method"&gt;&lt;option value="EFECTIVO"&gt;💵 EFECTIVO&lt;/option&gt;&lt;option value="SIMPE"&gt;📲 SIMPE&lt;/option&gt;&lt;option value="TRANSFERENCIA"&gt;🏦 TRANSF.&lt;/option&gt;&lt;option value="TARJETA"&gt;💳 TARJETA&lt;/option&gt;&lt;/select&gt;&lt;button class="btn btn-adj" onclick="saveOldMove(false)"&gt;GUARDAR (HISTORIAL)&lt;/button&gt;&lt;button class="btn btn-in" onclick="saveOldMove(true)"&gt;GUARDAR (AFECTA CAJA)&lt;/button&gt;&lt;/div>; openModal("Carga Histórica", html); }
+function saveOldMove(apply) {
+const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value;
+const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value;
+if(!d || !a || !s) return showMsg("Faltan datos");
+movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), historical: !apply });
+movements.sort((x,y) => new Date(y.date) - new Date(x.date));
+localStorage.setItem('copo_data', JSON.stringify(movements));
+updateUI(); closeModal('history-modal');
+}
+</script>
+</body>
+</html>
