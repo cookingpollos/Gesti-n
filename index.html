@@ -27,7 +27,7 @@ header { border-bottom: 2px solid #0026ff; padding-bottom: 10px; margin-bottom: 
 .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 25px; }
 .card { background: #1a1a1a; padding: 12px; border-radius: 12px; border: 1px solid #333; text-align: center; position: relative; }
 .card h3 { margin: 0; font-size: 0.7rem; color: #888; text-transform: uppercase; }
-.card p { margin: 8px 0 0; font-size: 1.1rem; font-weight: bold; }
+.card p { margin: 8px 0 0; font-size: 1rem; font-weight: bold; }
 
 .profit { color: #25D366; } .expense { color: #ff3b3b; } .adj-color { color: #0026ff; } .bank-color { color: #25D366; } .cash-color { color: #ff9900; }
 .balance { grid-column: span 2; border: 1px solid #0026ff; background: rgba(0, 38, 255, 0.05); }
@@ -106,7 +106,7 @@ input:checked + .slider:before { transform: translateX(20px); }
                     <button class="btn-icon" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()"><i class="fas fa-search"></i></button>
                     <button class="btn-icon" style="color:#ff9900; margin:0;" onclick="openCierreHistory()"><i class="fas fa-history"></i></button>
                 </div>
-                <h3>Ganancia Neta</h3><p id="net-profit">₡0</p>
+                <h3>Ganancia Neta</h3><p id="net-profit">₡0,00</p>
             </div>
             <div id="cierre-search" class="search-box-inline" style="grid-column: span 2; display:none; background:#000; padding:10px; border-radius:10px; margin-bottom:10px;">
                 <div style="display:flex; gap:5px;">
@@ -114,9 +114,9 @@ input:checked + .slider:before { transform: translateX(20px); }
                     <button class="btn btn-in" style="margin:0; padding:0 10px;" onclick="searchInPeriod()"><i class="fas fa-check"></i></button>
                 </div>
             </div>
-            <div class="card balance"><h3>Capital Actual</h3><p id="total-balance">₡0</p></div>
-            <div class="card"><h3>En Banco</h3><p class="bank-color" id="val-bank">₡0</p></div>
-            <div class="card"><h3>En Efectivo</h3><p class="cash-color" id="val-cash">₡0</p></div>
+            <div class="card balance"><h3>Capital Actual</h3><p id="total-balance">₡0,00</p></div>
+            <div class="card"><h3>En Banco</h3><p class="bank-color" id="val-bank">₡0,00</p></div>
+            <div class="card"><h3>En Efectivo</h3><p class="cash-color" id="val-cash">₡0,00</p></div>
         </div>
 
         <div class="form-box">
@@ -243,7 +243,15 @@ function formatDateSlash(isoString) {
 }
 
 function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Math.floor(totalMin/60)}h ${totalMin%60}m`; }
-function formatVisual(num) { return Math.round(num || 0).toLocaleString('es-CR'); }
+
+// CIRUGÍA AQUÍ: Mostramos decimales en la vista
+function formatVisual(num) { 
+    return Number(num || 0).toLocaleString('es-CR', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
+    }); 
+}
+
 function cleanAmount(val) { return parseFloat(val.toString().replace(/\./g, "").replace(/,/g, ".")) || 0; }
 
 function updateUI() {
@@ -386,7 +394,15 @@ function showMsg(msg) { document.getElementById('dialog-title').innerText = "Avi
 function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; }
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
-function formatCurrencyInput(input) { let value = input.value.replace(/[^0-9,]/g, ""); const parts = value.split(','); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); input.value = parts.length > 1 ? parts[0] + ',' + parts[1].slice(0,2) : parts[0]; }
+
+// CIRUGÍA AQUÍ: Permitimos que el input acepte céntimos visualmente
+function formatCurrencyInput(input) { 
+    let value = input.value.replace(/[^0-9,]/g, ""); 
+    const parts = value.split(','); 
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); 
+    input.value = parts.length > 1 ? parts[0] + ',' + parts[1].slice(0,2) : parts[0]; 
+}
+
 function saveStaff() { localStorage.setItem('copo_staff', JSON.stringify(staff)); }
 function toggleStaff(i) { document.querySelectorAll('.staff-bar')[i].classList.toggle('active'); }
 function toggleFeature(i, f) { staff[i][f] = !staff[i][f]; saveStaff(); }
