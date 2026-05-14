@@ -205,7 +205,7 @@ function applyBusinessIdentity() {
     loginArea.innerHTML = bizData.logo ? `<img src="${bizData.logo}" class="logo-login" onclick="zoomImage('${bizData.logo}')">` : `<div class="logo-small" style="margin-bottom:20px;">${bizData.name}</div>`;
 }
 
-function updateBusinessLogo(input) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { bizData.logo = e.target.result; }; reader.readAsDataURL(file); } }
+function updateBusinessLogo(input) { const file = input.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { bizData.logo = e.target.result; localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); applyBusinessIdentity(); }; reader.readAsDataURL(file); } }
 function saveBusinessIdentity() { bizData.name = document.getElementById('biz-name-input').value || "CoPo Admin"; bizData.owner = document.getElementById('owner-name-input').value; localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); applyBusinessIdentity(); showMsg("Guardado."); }
 
 async function hashPin(pin) { const msgUint8 = new TextEncoder().encode(pin); const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8); return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join(''); }
@@ -276,34 +276,57 @@ function updateUI() {
 function triggerFileSelect(id, staffIdx = null) { activeMovementId = id; activeStaffIndex = staffIdx; document.getElementById('table-file-input').click(); }
 function triggerCierreFileSelect(id) { activeCierreId = id; document.getElementById('cierre-file-input').click(); }
 
+// CIRUGÍA EN PROCESAMIENTO DE ARCHIVOS
 function processTableFile(input) {
     const file = input.files[0];
-    if (file && activeMovementId) {
+    if (file && activeMovementId !== null) {
         const reader = new FileReader();
         reader.onload = (e) => {
+            const dataUrl = e.target.result;
             if (activeStaffIndex !== null) {
-                const idx = staff[activeStaffIndex].shifts.findIndex(sh => sh.id === activeMovementId);
-                if (idx !== -1) { staff[activeStaffIndex].shifts[idx].img = e.target.result; saveStaff(); closeModal('history-modal'); openStaffHistory(activeStaffIndex); }
+                const sIdx = activeStaffIndex;
+                const mId = activeMovementId;
+                const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === mId);
+                if (shiftIdx !== -1) { 
+                    staff[sIdx].shifts[shiftIdx].img = dataUrl; 
+                    saveStaff(); 
+                    closeModal('history-modal'); 
+                    openStaffHistory(sIdx); 
+                }
             } else {
-                const index = movements.findIndex(m => m.id === activeMovementId);
-                if (index !== -1) { movements[index].img = e.target.result; localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }
+                const mIdx = movements.findIndex(m => m.id === activeMovementId);
+                if (mIdx !== -1) { 
+                    movements[mIdx].img = dataUrl; 
+                    localStorage.setItem('copo_data', JSON.stringify(movements)); 
+                    updateUI(); 
+                }
             }
-            activeMovementId = null; activeStaffIndex = null; input.value = "";
+            input.value = ""; // LIMPIEZA CRÍTICA
+            activeMovementId = null; activeStaffIndex = null;
         };
         reader.readAsDataURL(file);
+    } else {
+        input.value = "";
     }
 }
 
 function processCierreFile(input) {
     const file = input.files[0];
-    if (file && activeCierreId) {
+    if (file && activeCierreId !== null) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            const index = cierres.findIndex(c => c.id === activeCierreId);
-            if (index !== -1) { cierres[index].img = e.target.result; localStorage.setItem('copo_cierres', JSON.stringify(cierres)); openCierreHistory(); }
-            activeCierreId = null; input.value = "";
+            const cIdx = cierres.findIndex(c => c.id === activeCierreId);
+            if (cIdx !== -1) { 
+                cierres[cIdx].img = e.target.result; 
+                localStorage.setItem('copo_cierres', JSON.stringify(cierres)); 
+                openCierreHistory(); 
+            }
+            input.value = ""; // LIMPIEZA CRÍTICA
+            activeCierreId = null;
         };
         reader.readAsDataURL(file);
+    } else {
+        input.value = "";
     }
 }
 
@@ -485,7 +508,6 @@ function openHistoryLoader() {
     openModal("Carga Histórica", html); 
 }
 
-// CIRUGÍA AQUÍ: Corregido el parámetro 'apply' para que afecte caja correctamente
 function saveOldMove(apply) { 
     const d = document.getElementById('old-date').value, 
           a = cleanAmount(document.getElementById('old-amt').value), 
@@ -502,7 +524,7 @@ function saveOldMove(apply) {
         desc: s, 
         method: m, 
         date: new Date(d + "T12:00:00").toISOString(), 
-        historical: !apply // Si apply es true, historical es false (afecta caja)
+        historical: !apply
     }); 
     
     movements.sort((x,y) => new Date(y.date) - new Date(x.date)); 
