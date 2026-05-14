@@ -279,7 +279,15 @@ function formatDateSlash(isoString) {
 }
 
 function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Math.floor(totalMin/60)}h ${totalMin%60}m`; }
-function formatVisual(num) { return Math.round(num || 0).toLocaleString('es-CR'); }
+
+// CIRUGÍA: Función mejorada para manejar decimales opcionales
+function formatVisual(num, decimals = 0) { 
+    return Number(num || 0).toLocaleString('es-CR', { 
+        minimumFractionDigits: decimals, 
+        maximumFractionDigits: decimals 
+    }); 
+}
+
 function cleanAmount(val) { return parseFloat(val.toString().replace(/\./g, "").replace(/,/g, ".")) || 0; }
 
 function updateUI() {
@@ -293,9 +301,10 @@ function updateUI() {
         const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}')">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
         body.innerHTML += `<tr><td style="white-space:nowrap">${getFormatedDate(m.date)}</td><td>${m.desc}<br><small>${m.method}</small></td><td style="text-align:center">${imgBtn}</td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteMovement(${m.id})"><i class="fas fa-trash"></i></button></td></tr>`;
     });
-    document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank);
-    document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash);
-    document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash);
+    // CIRUGÍA: Mostramos 2 decimales en Banco, Efectivo y Capital
+    document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
+    document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash, 2);
+    document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash, 2);
     document.getElementById('net-profit').innerText = "₡" + formatVisual(tin - tout);
 }
 
@@ -530,12 +539,12 @@ function verDetalleCierre(id) {
     const c = cierres.find(x => x.id === id);
     if(!c) return;
     const html = `<div style="text-align:center; padding:10px;">
-        <h2 class="profit" style="margin-bottom:5px;">₡${formatVisual(c.totalNeto)}</h2>
+        <h2 class="profit" style="margin-bottom:5px;">₡${formatVisual(c.totalNeto, 2)}</h2>
         <p style="color:#888; margin-bottom:15px;">Balance Neto</p>
         <div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
             <p><b>Periodo:</b><br> <small>${c.note || getFormatedDate(c.date)}</small></p>
-            ${c.ingresos ? `<p><b>Ingresos:</b> <span class="profit">₡${formatVisual(c.ingresos)}</span></p>` : ''}
-            ${c.egresos ? `<p><b>Egresos:</b> <span class="expense">₡${formatVisual(c.egresos)}</span></p>` : ''}
+            ${c.ingresos ? `<p><b>Ingresos:</b> <span class="profit">₡${formatVisual(c.ingresos, 2)}</span></p>` : ''}
+            ${c.egresos ? `<p><b>Egresos:</b> <span class="expense">₡${formatVisual(c.egresos, 2)}</span></p>` : ''}
         </div>
     </div>`;
     openModal("Detalle de Cierre", html);
@@ -551,7 +560,6 @@ function deleteCierre(id) {
     });
 }
 
-// CIRUGÍA: Función Reset simplificada sin candado
 function resetPeriodProfit() { 
     showConfirm("¿Deseas reiniciar las ganancias de este periodo?", () => { 
         lastResetDate = new Date().toISOString(); 
@@ -570,9 +578,9 @@ function searchInPeriod() {
     const ganancia = i - e;
     openModal("Reporte de Periodo", `
         <div style="text-align:center;">
-            <h3 class="profit">Balance: ₡${formatVisual(ganancia)}</h3>
-            <p>Ingresos: ₡${formatVisual(i)}</p>
-            <p class="expense">Egresos: ₡${formatVisual(e)}</p>
+            <h3 class="profit">Balance: ₡${formatVisual(ganancia, 2)}</h3>
+            <p>Ingresos: ₡${formatVisual(i, 2)}</p>
+            <p class="expense">Egresos: ₡${formatVisual(e, 2)}</p>
             <hr style="border:1px solid #333; margin:15px 0;">
             <button class="btn btn-in" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e})">HACER CIERRE</button>
         </div>
