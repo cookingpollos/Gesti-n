@@ -101,7 +101,10 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div id="tab-contabilidad">
         <div class="dashboard">
             <div class="card profit-card">
-                <button class="btn-icon" style="color:#3498db; margin:0; position: absolute; left: 10px; top: 10px;" onclick="openHistoryLoader()"><i class="fas fa-calendar-plus"></i></button>
+                <div style="position: absolute; left: 10px; top: 10px;">
+                    <button class="btn-icon" style="color:#3498db; margin:0;" onclick="openHistoryLoader()"><i class="fas fa-calendar-plus"></i></button>
+                    <button class="btn-icon" style="color:#25D366; margin:0;" onclick="resetProfit()"><i class="fas fa-sync-alt"></i></button>
+                </div>
                 <div style="position: absolute; right: 10px; top: 10px;">
                     <button class="btn-icon" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()"><i class="fas fa-search"></i></button>
                     <button class="btn-icon" style="color:#ff9900; margin:0;" onclick="openCierreHistory()"><i class="fas fa-history"></i></button>
@@ -244,7 +247,6 @@ function formatDateSlash(isoString) {
 
 function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Math.floor(totalMin/60)}h ${totalMin%60}m`; }
 
-// CIRUGÍA AQUÍ: Mostramos decimales en la vista
 function formatVisual(num) { 
     return Number(num || 0).toLocaleString('es-CR', { 
         minimumFractionDigits: 2, 
@@ -395,7 +397,6 @@ function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').i
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
 
-// CIRUGÍA AQUÍ: Permitimos que el input acepte céntimos visualmente
 function formatCurrencyInput(input) { 
     let value = input.value.replace(/[^0-9,]/g, ""); 
     const parts = value.split(','); 
@@ -477,6 +478,16 @@ function saveOldMove(apply) {
     const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; if(!d || !a || !s) return showMsg("Faltan datos"); 
     movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), historical: !apply }); 
     movements.sort((x,y) => new Date(y.date) - new Date(x.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
+}
+
+// CIRUGÍA FINAL: Función para resetear ganancia a cero marcando el momento actual
+function resetProfit() { 
+    showConfirm("¿Deseas resetear la Ganancia Neta a ₡0,00? (Esto no borra tus saldos ni tu historial, solo marca este momento como el nuevo inicio del día).", () => { 
+        lastResetDate = new Date().toISOString(); 
+        localStorage.setItem('copo_last_reset', lastResetDate); 
+        updateUI(); 
+        showMsg("Contador de ganancias reiniciado."); 
+    }); 
 }
 </script>
 </body>
