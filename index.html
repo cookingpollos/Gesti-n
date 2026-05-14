@@ -53,6 +53,7 @@ td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 
 .img-preview-mini { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 1px solid #333; }
 .btn-add-img { color: #0026ff; font-size: 1.2rem; cursor: pointer; background: none; border: none; }
+.btn-ver-cierre { background: #0026ff; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
 
 .staff-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
 .staff-header-bar { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -104,7 +105,6 @@ input:checked + .slider:before { transform: translateX(20px); }
                 <div style="position: absolute; right: 10px; top: 10px;">
                     <button class="btn-icon" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()"><i class="fas fa-search"></i></button>
                     <button class="btn-icon" style="color:#ff9900; margin:0;" onclick="openCierreHistory()"><i class="fas fa-history"></i></button>
-                    <button class="btn-icon" style="color:#ff3b3b; margin:0;" onclick="closePeriod()"><i class="fas fa-lock"></i></button>
                 </div>
                 <h3>Ganancia Neta</h3><p id="net-profit">₡0</p>
             </div>
@@ -175,6 +175,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 </div>
 
 <input type="file" id="table-file-input" accept="image/*" style="display:none" onchange="processTableFile(this)">
+<input type="file" id="cierre-file-input" accept="image/*" style="display:none" onchange="processCierreFile(this)">
 
 <div id="imgModal" class="modal" style="z-index: 10000;"><div class="modal-content-wrapper" style="max-width: 95vw; padding: 5px;"><span class="close-x" onclick="closeModal('imgModal')">×</span><img id="imgZoom" style="width:100%; border-radius:10px; display: block;"></div></div>
 <div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
@@ -189,7 +190,7 @@ let staff = JSON.parse(localStorage.getItem('copo_staff')) || [];
 let cierres = JSON.parse(localStorage.getItem('copo_cierres')) || [];
 let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
-let pendingType = "", currentBase64 = "", activeMovementId = null, activeStaffIndex = null;
+let pendingType = "", activeMovementId = null, activeStaffIndex = null, activeCierreId = null;
 
 window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); };
 
@@ -262,11 +263,8 @@ function updateUI() {
     document.getElementById('net-profit').innerText = "₡" + formatVisual(tin - tout);
 }
 
-function triggerFileSelect(id, staffIdx = null) { 
-    activeMovementId = id; 
-    activeStaffIndex = staffIdx;
-    document.getElementById('table-file-input').click(); 
-}
+function triggerFileSelect(id, staffIdx = null) { activeMovementId = id; activeStaffIndex = staffIdx; document.getElementById('table-file-input').click(); }
+function triggerCierreFileSelect(id) { activeCierreId = id; document.getElementById('cierre-file-input').click(); }
 
 function processTableFile(input) {
     const file = input.files[0];
@@ -275,19 +273,10 @@ function processTableFile(input) {
         reader.onload = (e) => {
             if (activeStaffIndex !== null) {
                 const idx = staff[activeStaffIndex].shifts.findIndex(sh => sh.id === activeMovementId);
-                if (idx !== -1) {
-                    staff[activeStaffIndex].shifts[idx].img = e.target.result;
-                    saveStaff();
-                    closeModal('history-modal');
-                    openStaffHistory(activeStaffIndex);
-                }
+                if (idx !== -1) { staff[activeStaffIndex].shifts[idx].img = e.target.result; saveStaff(); closeModal('history-modal'); openStaffHistory(activeStaffIndex); }
             } else {
                 const index = movements.findIndex(m => m.id === activeMovementId);
-                if (index !== -1) {
-                    movements[index].img = e.target.result;
-                    localStorage.setItem('copo_data', JSON.stringify(movements));
-                    updateUI();
-                }
+                if (index !== -1) { movements[index].img = e.target.result; localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }
             }
             activeMovementId = null; activeStaffIndex = null; input.value = "";
         };
@@ -295,11 +284,22 @@ function processTableFile(input) {
     }
 }
 
+function processCierreFile(input) {
+    const file = input.files[0];
+    if (file && activeCierreId) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const index = cierres.findIndex(c => c.id === activeCierreId);
+            if (index !== -1) { cierres[index].img = e.target.result; localStorage.setItem('copo_cierres', JSON.stringify(cierres)); openCierreHistory(); }
+            activeCierreId = null; input.value = "";
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
 function filtrarMovimientos() {
     const v = document.getElementById('buscador').value.toLowerCase();
-    Array.from(document.getElementById('history-body').rows).forEach(r => {
-        r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none";
-    });
+    Array.from(document.getElementById('history-body').rows).forEach(r => { r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none"; });
 }
 
 function renderStaff() {
@@ -319,8 +319,7 @@ function renderStaff() {
 function openStaffHistory(i) {
     let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:center">Fact.</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`;
     staff[i].shifts.forEach(sh => {
-        let det = "";
-        let colorClass = sh.earned >= 0 ? 'profit' : 'expense';
+        let det = ""; let colorClass = sh.earned >= 0 ? 'profit' : 'expense';
         if(sh.type === 'SHIFT') det = `${getFormatedTime(sh.ord)} ord ${sh.ext > 0 ? '+ ' + getFormatedTime(sh.ext) + ' ext' : ''}`;
         else if(sh.type === 'ADVANCE') det = `<i class="fas fa-hand-holding-usd"></i> ${sh.desc || "Adelanto"}`;
         else if(sh.type === 'AGUINALDO') det = `<i class="fas fa-piggy-bank"></i> ${sh.desc}`;
@@ -335,11 +334,7 @@ function openStaffHistory(i) {
 function deleteStaffMovement(staffIndex, moveId) {
     showConfirm("¿Eliminar este registro? El saldo se ajustará.", () => {
         const move = staff[staffIndex].shifts.find(sh => sh.id === moveId);
-        if (move) {
-            staff[staffIndex].debt -= move.earned;
-            staff[staffIndex].shifts = staff[staffIndex].shifts.filter(sh => sh.id !== moveId);
-            saveStaff(); renderStaff(); closeModal('history-modal'); openStaffHistory(staffIndex);
-        }
+        if (move) { staff[staffIndex].debt -= move.earned; staff[staffIndex].shifts = staff[staffIndex].shifts.filter(sh => sh.id !== moveId); saveStaff(); renderStaff(); closeModal('history-modal'); openStaffHistory(staffIndex); }
     });
 }
 
@@ -348,84 +343,42 @@ function addHours(i) {
     if(!inV || !outV) return showMsg("Faltan horas"); 
     const diff = (new Date(outV) - new Date(inV)) / 3600000; 
     if(diff <= 0) return showMsg("Error"); 
-    let ord = (s.useExtras && diff > 8) ? 8 : diff; 
-    let ext = (s.useExtras && diff > 8) ? diff - 8 : 0; 
+    let ord = (s.useExtras && diff > 8) ? 8 : diff; let ext = (s.useExtras && diff > 8) ? diff - 8 : 0; 
     let earned = (ord * s.rate) + (ext * s.rate * 1.5); 
-    s.debt += earned; 
-    s.shifts.unshift({ id: Date.now(), date: new Date().toISOString(), ord, ext, earned, type: 'SHIFT', img: "" }); 
-    saveStaff(); renderStaff(); 
-    document.getElementById(`dt-in-${i}`).value = "";
-    document.getElementById(`dt-out-${i}`).value = "";
+    s.debt += earned; s.shifts.unshift({ id: Date.now(), date: new Date().toISOString(), ord, ext, earned, type: 'SHIFT', img: "" }); 
+    saveStaff(); renderStaff(); document.getElementById(`dt-in-${i}`).value = ""; document.getElementById(`dt-out-${i}`).value = "";
 }
 
 function giveAdvance(i) { 
-    const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value); 
-    const dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto'; 
+    const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value); const dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto'; 
     if(amt <= 0) return showMsg("Monto inválido"); 
-    staff[i].debt -= amt; 
-    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -amt, type: 'ADVANCE', desc: dsc, img: "" }); 
-    saveStaff(); renderStaff(); 
-    document.getElementById(`adv-amt-${i}`).value = "";
-    document.getElementById(`adv-desc-${i}`).value = "";
+    staff[i].debt -= amt; staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -amt, type: 'ADVANCE', desc: dsc, img: "" }); 
+    saveStaff(); renderStaff(); document.getElementById(`adv-amt-${i}`).value = ""; document.getElementById(`adv-desc-${i}`).value = "";
 }
 
 function resetDebt(i) { 
     let tOrd = 0, tExt = 0, sueldoPuro = 0;
-    staff[i].shifts.forEach(sh => { 
-        if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; }
-        if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; } 
-    }); 
+    staff[i].shifts.forEach(sh => { if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; } if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; } }); 
     if(sueldoPuro <= 0) return showMsg("No hay sueldo pendiente.");
     let detail = `Sueldo: ${getFormatedTime(tOrd)} ord` + (tExt > 0 ? ` + ${getFormatedTime(tExt)} ext` : '');
-    showConfirm(`¿Liquidar sueldo de ₡${formatVisual(sueldoPuro)}?`, () => { 
-        staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "" }); 
-        staff[i].debt -= sueldoPuro; saveStaff(); renderStaff(); 
-    }); 
+    showConfirm(`¿Liquidar sueldo de ₡${formatVisual(sueldoPuro)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "" }); staff[i].debt -= sueldoPuro; saveStaff(); renderStaff(); }); 
 }
 
 function payAguinaldoOnly(i) {
-    let aguinaldoTotal = 0;
-    staff[i].shifts.forEach(sh => { if(sh.type === 'AGUINALDO' || sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned; });
+    let aguinaldoTotal = 0; staff[i].shifts.forEach(sh => { if(sh.type === 'AGUINALDO' || sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned; });
     if(aguinaldoTotal <= 0) return showMsg("No hay aguinaldo pendiente.");
-    showConfirm(`¿Pagar aguinaldo de ₡${formatVisual(aguinaldoTotal)}?`, () => {
-        staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -aguinaldoTotal, type: 'PAYMENT_AGUINALDO', img: "" });
-        staff[i].debt -= aguinaldoTotal; saveStaff(); renderStaff();
-    });
+    showConfirm(`¿Pagar aguinaldo de ₡${formatVisual(aguinaldoTotal)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -aguinaldoTotal, type: 'PAYMENT_AGUINALDO', img: "" }); staff[i].debt -= aguinaldoTotal; saveStaff(); renderStaff(); });
 }
 
-function openAguinaldoCalc(i) { 
-    const html = `<div style="text-align:center;"><p>Cálculo 8.33%</p>
-    <input type="date" id="ag-from">
-    <input type="date" id="ag-to">
-    <button class="btn btn-adj" onclick="calcAguinaldo833(${i})">CALCULAR</button>
-    <div id="ag-res"></div></div>`; 
-    openModal("Aguinaldo", html); 
-}
-
+function openAguinaldoCalc(i) { const html = `<div style="text-align:center;"><p>Cálculo 8.33%</p><input type="date" id="ag-from"><input type="date" id="ag-to"><button class="btn btn-adj" onclick="calcAguinaldo833(${i})">CALCULAR</button><div id="ag-res"></div></div>`; openModal("Aguinaldo", html); }
 function calcAguinaldo833(i) { 
-    const fV = document.getElementById('ag-from').value, tV = document.getElementById('ag-to').value;
-    if(!fV || !tV) return showMsg("Fechas incompletas");
-    const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime(); 
-    let totalS = 0; 
-    staff[i].shifts.forEach(sh => { 
-        const sD = new Date(sh.date).getTime(); 
-        if(sD >= f && sD <= t && sh.earned > 0 && sh.type === 'SHIFT') totalS += sh.earned; 
-    }); 
-    const monto = totalS * 0.0833;
-    document.getElementById('ag-res').innerHTML = `
-        <h2 class="profit">₡${formatVisual(monto)}</h2>
-        <button class="btn btn-in" onclick="addAguinaldoToStaff(${i}, ${monto}, '${fV}', '${tV}')">AGREGAR A PLANILLA</button>
-    `; 
+    const fV = document.getElementById('ag-from').value, tV = document.getElementById('ag-to').value; if(!fV || !tV) return showMsg("Fechas incompletas");
+    const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime(); let totalS = 0; 
+    staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t && sh.earned > 0 && sh.type === 'SHIFT') totalS += sh.earned; }); 
+    const monto = totalS * 0.0833; document.getElementById('ag-res').innerHTML = `<h2 class="profit">₡${formatVisual(monto)}</h2><button class="btn btn-in" onclick="addAguinaldoToStaff(${i}, ${monto}, '${fV}', '${tV}')">AGREGAR A PLANILLA</button>`; 
 }
 
-function addAguinaldoToStaff(i, monto, f, t) {
-    if(monto <= 0) return showMsg("Monto en 0");
-    staff[i].debt += monto;
-    const desc = `Aguinaldo del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
-    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: monto, type: 'AGUINALDO', desc: desc, img: "" });
-    saveStaff(); renderStaff(); closeModal('history-modal');
-}
-
+function addAguinaldoToStaff(i, monto, f, t) { if(monto <= 0) return showMsg("Monto en 0"); staff[i].debt += monto; const desc = `Aguinaldo del ${formatDateSlash(f)} al ${formatDateSlash(t)}`; staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: monto, type: 'AGUINALDO', desc: desc, img: "" }); saveStaff(); renderStaff(); closeModal('history-modal'); }
 function openModal(t, c) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerHTML = c; document.getElementById('history-modal').style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function zoomImage(s) { document.getElementById('imgZoom').src = s; document.getElementById('imgModal').style.display = 'flex'; }
@@ -442,21 +395,16 @@ function openMethodModal(t) { if(!document.getElementById('amount').value) retur
 function closeMethodModal() { document.getElementById('method-modal').style.display = 'none'; }
 function openAdjModal() { if(!document.getElementById('amount').value) return showMsg("Monto vacío"); document.getElementById('adj-modal').style.display = 'flex'; }
 function closeAdjModal() { document.getElementById('adj-modal').style.display = 'none'; }
+
 function executeEntry(m, ot = null) { 
     const t = ot || pendingType; 
     movements.unshift({ id: Date.now(), type: t, amount: cleanAmount(document.getElementById('amount').value), desc: document.getElementById('desc').value, method: m, date: new Date().toISOString(), img: "" }); 
-    localStorage.setItem('copo_data', JSON.stringify(movements)); 
-    updateUI(); closeMethodModal(); closeAdjModal(); 
+    localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); 
     document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
+
 function deleteMovement(id) { showConfirm("¿Eliminar?", () => { movements = movements.filter(m => m.id !== id); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }); }
-function addStaff() { 
-    const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value); 
-    if(!n || !r) return; 
-    staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true }); 
-    saveStaff(); renderStaff(); 
-    document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; 
-}
+function addStaff() { const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value); if(!n || !r) return; staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true }); saveStaff(); renderStaff(); document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; }
 function deleteStaff(i) { showConfirm("¿Eliminar?", () => { staff.splice(i,1); saveStaff(); renderStaff(); }); }
 function updateStaffRate(i) { const html = `<div style="text-align:center;"><p>Nueva tarifa para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Nueva Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR</button></div>`; openModal("Ajustar Precio Hora", html); }
 function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val > 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); } }
@@ -464,79 +412,56 @@ function checkPeriodStaff(i) { openModal(`Consulta: ${staff[i].name}`, `<input t
 function calcPeriodStaff(i) { const f = new Date(document.getElementById('p-from').value + "T00:00:00").getTime(), t = new Date(document.getElementById('p-to').value + "T23:59:59").getTime(); let m = 0; staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t) m += sh.earned; }); document.getElementById('p-res').innerHTML = `<hr><h3>₡${formatVisual(m)}</h3>`; }
 function showTab(t) { document.getElementById('tab-contabilidad').style.display = t === 'contabilidad' ? 'block' : 'none'; document.getElementById('tab-planilla').style.display = t === 'planilla' ? 'block' : 'none'; document.getElementById('tab-configuracion').style.display = t === 'configuracion' ? 'block' : 'none'; document.getElementById('btn-tab-contabilidad').classList.toggle('active', t === 'contabilidad'); document.getElementById('btn-tab-planilla').classList.toggle('active', t === 'planilla'); }
 
-function confirmFullReset() {
-    const adv = `
-        <div class="warning-box-full">
-            <i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px; color:#ff3b3b;"></i><br>
-            <b style="font-size: 1.2rem;">¡ATENCIÓN!</b><br><br>
-            Esta acción borrará permanentemente toda la contabilidad, empleados e historial.<br><br>
-            <b>¿Realmente desea eliminar TODO el sistema?</b>
-        </div>
-    `;
-    showConfirm(adv, () => { localStorage.clear(); location.reload(); });
-}
-
+function confirmFullReset() { const adv = `<div class="warning-box-full"><i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px; color:#ff3b3b;"></i><br><b style="font-size: 1.2rem;">¡ATENCIÓN!</b><br><br>Esta acción borrará permanentemente toda la contabilidad, empleados e historial.<br><br><b>¿Realmente desea eliminar TODO el sistema?</b></div>`; showConfirm(adv, () => { localStorage.clear(); location.reload(); }); }
 function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
 
 function openCierreHistory() { 
-    let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th>Ganancia</th><th></th></tr></thead><tbody>`; 
+    let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th style="text-align:center">Ver</th><th style="text-align:center">Fact.</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`; 
     cierres.forEach(c => {
-        h += `<tr><td>${getFormatedDate(c.date)}</td><td class="profit">₡${formatVisual(c.totalNeto)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+        const imgBtn = c.img ? `<img src="${c.img}" class="img-preview-mini" onclick="zoomImage('${c.img}')">` : `<button class="btn-add-img" onclick="triggerCierreFileSelect(${c.id})"><i class="fas fa-plus-circle"></i></button>`;
+        h += `<tr><td style="white-space:nowrap">${getFormatedDate(c.date)}</td><td style="text-align:center"><button class="btn-ver-cierre" onclick="verDetalleCierre(${c.id})">VER</button></td><td style="text-align:center">${imgBtn}</td><td class="profit" style="text-align:right; font-weight:bold;">₡${formatVisual(c.totalNeto)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`;
     }); 
-    openModal("Cierres", h + "</tbody></table></div>"); 
+    openModal("Historial de Cierres", h + "</tbody></table></div>"); 
 }
 
-function deleteCierre(id) {
-    showConfirm("¿Eliminar este cierre del historial?", () => {
-        cierres = cierres.filter(c => c.id !== id);
-        localStorage.setItem('copo_cierres', JSON.stringify(cierres));
-        showMsg("Cierre eliminado.");
-        closeModal('history-modal');
-        openCierreHistory();
-    });
+function verDetalleCierre(id) {
+    const c = cierres.find(x => x.id === id); if(!c) return;
+    const html = `<div style="text-align:center; padding:10px;">
+        <h2 class="profit" style="margin-bottom:5px;">₡${formatVisual(c.totalNeto)}</h2>
+        <p style="color:#888; margin-bottom:15px;">Balance Neto</p>
+        <div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
+            <p><b>Periodo:</b><br> <small>${c.note}</small></p>
+            <p><b>Ingresos:</b> <span class="profit">₡${formatVisual(c.ingresos)}</span></p>
+            <p><b>Egresos:</b> <span class="expense">₡${formatVisual(c.egresos)}</span></p>
+        </div>
+    </div>`;
+    openModal("Detalle de Cierre", html);
 }
 
-function closePeriod() { showConfirm("¿Cerrar periodo?", () => { let ti = 0, to = 0; movements.forEach(m => { if(m.date > lastResetDate && !m.historical) { if(m.type==='IN') ti+=m.amount; else if(m.type==='OUT') to+=m.amount; } }); cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: ti-to }); lastResetDate = new Date().toISOString(); localStorage.setItem('copo_last_reset', lastResetDate); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); updateUI(); }); }
+function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); openCierreHistory(); }); }
 
 function searchInPeriod() { 
-    const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
-    if(!f || !t) return showMsg("Faltan fechas"); 
-    let i=0, e=0; 
-    const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
+    const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; if(!f || !t) return showMsg("Faltan fechas"); 
+    let i=0, e=0; const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
     movements.forEach(m => { if(m.date >= fT && m.date <= tT) { if(m.type.includes('IN')) i+=m.amount; else e+=m.amount; } }); 
     const ganancia = i - e;
-    openModal("Reporte de Periodo", `
-        <div style="text-align:center;">
-            <h3 class="profit">Balance: ₡${formatVisual(ganancia)}</h3>
-            <p>Ingresos: ₡${formatVisual(i)}</p>
-            <p class="expense">Egresos: ₡${formatVisual(e)}</p>
-            <hr style="border:1px solid #333; margin:15px 0;">
-            <button class="btn btn-in" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia})">REGISTRAR COMO CIERRE DE PERIODO</button>
-        </div>
-    `); 
+    openModal("Reporte de Periodo", `<div style="text-align:center;"><h3 class="profit">Balance: ₡${formatVisual(ganancia)}</h3><p>Ingresos: ₡${formatVisual(i)}</p><p class="expense">Egresos: ₡${formatVisual(e)}</p><hr style="border:1px solid #333; margin:15px 0;"><button class="btn btn-in" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e})">REGISTRAR CIERRE</button></div>`); 
 }
 
-function saveHistoricalCierre(f, t, total) {
-    showConfirm(`¿Guardar este reporte como un cierre histórico del ${f} al ${t}?`, () => {
-        cierres.unshift({ id: Date.now(), date: new Date(t + "T23:59:59").toISOString(), totalNeto: total, note: `Periodo: ${f} al ${t}` });
-        cierres.sort((x, y) => new Date(y.date) - new Date(x.date));
-        localStorage.setItem('copo_cierres', JSON.stringify(cierres));
-        showMsg("Cierre guardado y ordenado en el historial.");
-        closeModal('history-modal');
+function saveHistoricalCierre(f, t, total, ing, egr) {
+    showConfirm(`¿Guardar este cierre del ${f} al ${t}?`, () => {
+        cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: `${formatDateSlash(f)} al ${formatDateSlash(t)}`, img: "" });
+        localStorage.setItem('copo_cierres', JSON.stringify(cierres)); showMsg("Cierre registrado."); closeModal('history-modal');
     });
 }
 
 function openHistoryLoader() { const html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><input type="date" id="old-date"><input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal"><input type="text" id="old-dsc" placeholder="Motivo"><select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select><select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option><option value="TRANSFERENCIA">🏦 TRANSF.</option><option value="TARJETA">💳 TARJETA</option></select><button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button><button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button></div>`; openModal("Carga Histórica", html); }
 function saveOldMove(apply) { 
     const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value; 
-    const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; 
-    if(!d || !a || !s) return showMsg("Faltan datos"); 
+    const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; if(!d || !a || !s) return showMsg("Faltan datos"); 
     movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), historical: !apply }); 
-    movements.sort((x,y) => new Date(y.date) - new Date(x.date)); 
-    localStorage.setItem('copo_data', JSON.stringify(movements)); 
-    updateUI(); closeModal('history-modal'); 
+    movements.sort((x,y) => new Date(y.date) - new Date(x.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
 }
 </script>
 </body>
 </html>
-
