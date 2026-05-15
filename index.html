@@ -280,7 +280,6 @@ function formatDateSlash(isoString) {
 
 function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Math.floor(totalMin/60)}h ${totalMin%60}m`; }
 
-// CIRUGÍA: Función mejorada para manejar decimales opcionales
 function formatVisual(num, decimals = 0) { 
     return Number(num || 0).toLocaleString('es-CR', { 
         minimumFractionDigits: decimals, 
@@ -301,7 +300,6 @@ function updateUI() {
         const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}')">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
         body.innerHTML += `<tr><td style="white-space:nowrap">${getFormatedDate(m.date)}</td><td>${m.desc}<br><small>${m.method}</small></td><td style="text-align:center">${imgBtn}</td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteMovement(${m.id})"><i class="fas fa-trash"></i></button></td></tr>`;
     });
-    // CIRUGÍA: Mostramos 2 decimales en Banco, Efectivo y Capital
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
     document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash, 2);
     document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash, 2);
@@ -535,16 +533,18 @@ function openCierreHistory() {
     openModal("Historial de Cierres", h + "</tbody></table></div>"); 
 }
 
+// CIRUGÍA QUIRÚRGICA: Ajuste de colores, orden y formato en Detalle de Cierre (Historial)
 function verDetalleCierre(id) {
     const c = cierres.find(x => x.id === id);
     if(!c) return;
     const html = `<div style="text-align:center; padding:10px;">
-        <h2 class="profit" style="margin-bottom:5px;">₡${formatVisual(c.totalNeto, 2)}</h2>
-        <p style="color:#888; margin-bottom:15px;">Balance Neto</p>
         <div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
-            <p><b>Periodo:</b><br> <small>${c.note || getFormatedDate(c.date)}</small></p>
-            ${c.ingresos ? `<p><b>Ingresos:</b> <span class="profit">₡${formatVisual(c.ingresos, 2)}</span></p>` : ''}
-            ${c.egresos ? `<p><b>Egresos:</b> <span class="expense">₡${formatVisual(c.egresos, 2)}</span></p>` : ''}
+            <p><b>Fecha Registro:</b><br> <small>${getFormatedDate(c.date)}</small></p>
+            <p><b>Periodo:</b><br> <small>${c.note}</small></p>
+            <hr style="border:1px solid #222; margin:15px 0;">
+            ${c.egresos ? `<p class="expense" style="font-weight:bold;">Egresos Reales: ₡${formatVisual(c.egresos, 2)}</p>` : ''}
+            ${c.ingresos ? `<p class="profit" style="font-weight:bold;">Ingresos Reales: ₡${formatVisual(c.ingresos, 2)}</p>` : ''}
+            <h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance: ₡${formatVisual(c.totalNeto, 2)}</h3>
         </div>
     </div>`;
     openModal("Detalle de Cierre", html);
@@ -560,7 +560,6 @@ function deleteCierre(id) {
     });
 }
 
-// CIRUGÍA: Función Reset simplificada sin candado
 function resetPeriodProfit() { 
     showConfirm("¿Deseas reiniciar las ganancias de este periodo?", () => { 
         lastResetDate = new Date().toISOString(); 
@@ -570,14 +569,13 @@ function resetPeriodProfit() {
     }); 
 }
 
-// CIRUGÍA QUIRÚRGICA: Ahora ignora movimientos de AJUSTE (ADJ_IN y ADJ_OUT)
+// CIRUGÍA QUIRÚRGICA: Ajuste de colores y orden en Reporte de Periodo (Lupita)
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
     if(!f || !t) return showMsg("Faltan fechas"); 
     let i=0, e=0; 
     const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
     
-    // Solo sumamos si es IN o OUT estricto (Ventas o Gastos reales)
     movements.forEach(m => { 
         if(m.date >= fT && m.date <= tT) { 
             if(m.type === 'IN') i += m.amount; 
@@ -586,24 +584,29 @@ function searchInPeriod() {
     }); 
     
     const ganancia = i - e;
-    openModal("Reporte de Periodo", `
+    const notaPeriodo = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
+    
+    openModal("Detalle de Cierre", `
         <div style="text-align:center;">
-            <h3 class="profit">Balance: ₡${formatVisual(ganancia, 2)}</h3>
-            <p>Ingresos Reales: ₡${formatVisual(i, 2)}</p>
-            <p class="expense">Egresos Reales: ₡${formatVisual(e, 2)}</p>
-            <hr style="border:1px solid #333; margin:15px 0;">
-            <p style="font-size:0.75rem; color:#888;">* Los ajustes de capital han sido excluidos de este reporte.</p>
-            <button class="btn btn-in" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e})">HACER CIERRE</button>
+             <div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
+                <p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p>
+                <hr style="border:1px solid #333; margin:15px 0;">
+                <p class="expense" style="font-weight:bold;">Egresos Reales: ₡${formatVisual(e, 2)}</p>
+                <p class="profit" style="font-weight:bold;">Ingresos Reales: ₡${formatVisual(i, 2)}</p>
+                <h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance: ₡${formatVisual(ganancia, 2)}</h3>
+                <p style="font-size:0.7rem; color:#888; margin-top: 10px; text-align:center;">* Los ajustes de capital han sido excluidos.</p>
+            </div>
+            <button class="btn btn-in" style="margin-top:15px;" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e})">HACER CIERRE</button>
         </div>
     `); 
 }
 
 function saveHistoricalCierre(f, t, total, ing, egr) {
-    showConfirm(`¿Guardar este reporte como un cierre histórico del ${f} al ${t}?`, () => {
-        cierres.unshift({ id: Date.now(), date: new Date(t + "T23:59:59").toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: `Periodo: ${f} al ${t}` });
-        cierres.sort((x, y) => new Date(y.date) - new Date(x.date));
+    const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
+    showConfirm(`¿Guardar este reporte como un cierre histórico del periodo?`, () => {
+        cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota });
         localStorage.setItem('copo_cierres', JSON.stringify(cierres));
-        showMsg("Cierre guardado y ordenado en el historial.");
+        showMsg("Cierre guardado con éxito.");
         closeModal('history-modal');
     });
 }
