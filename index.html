@@ -74,6 +74,10 @@ td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 input:checked + .slider { background-color: #0026ff; }
 input:checked + .slider:before { transform: translateX(20px); }
 .input-label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-align: left; }
+
+/* CIRUGÍA: Estilo del Cuadro de Ayuda Estático */
+#help-card { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #1a1a1a; border: 2px solid #0026ff; border-radius: 15px; padding: 20px; z-index: 20000; box-shadow: 0 0 30px rgba(0,38,255,0.4); animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
 </style>
 </head>
 <body id="main-body">
@@ -88,26 +92,26 @@ input:checked + .slider:before { transform: translateX(20px); }
     <header>
         <div class="logo-container" id="header-logo-area"></div>
         <div style="display: flex; align-items: center;">
-            <button id="config-tab-btn" onclick="showTab('configuracion')" style="background:none; border:none; color:#555; cursor:pointer; font-size: 1.2rem; margin-right: 15px;"><i class="fas fa-cog"></i></button>
+            <button id="config-tab-btn" onclick="showTab('configuracion')" class="help-trigger" data-title="Configuración" data-help="Aquí gestionas la identidad visual (logo y nombres) y la seguridad (PIN) del sistema." style="background:none; border:none; color:#555; cursor:pointer; font-size: 1.2rem; margin-right: 15px;"><i class="fas fa-cog"></i></button>
             <button onclick="logout()" style="background:none; border:none; color:#555; cursor:pointer;">Cerrar</button>
         </div>
     </header>
 
     <div class="tabs">
-        <button class="tab-btn active" id="btn-tab-contabilidad" onclick="showTab('contabilidad')">CONTABILIDAD</button>
-        <button class="tab-btn" id="btn-tab-planilla" onclick="showTab('planilla')">PLANILLA</button>
+        <button class="tab-btn active help-trigger" id="btn-tab-contabilidad" onclick="showTab('contabilidad')" data-title="Módulo Contabilidad" data-help="Pantalla principal para controlar el flujo de caja, ver saldos de banco/efectivo y ganancias netas.">CONTABILIDAD</button>
+        <button class="tab-btn help-trigger" id="btn-tab-planilla" onclick="showTab('planilla')" data-title="Módulo Planilla" data-help="Sección para administrar a tus trabajadores, anotar turnos de entrada/salida y calcular pagos.">PLANILLA</button>
     </div>
 
     <div id="tab-contabilidad">
         <div class="dashboard">
-            <div class="card profit-card">
+            <div class="card profit-card help-trigger" data-title="Ganancia Neta" data-help="Diferencia entre Ingresos y Egresos registrados en este periodo actual.">
                 <div style="position: absolute; left: 10px; top: 10px; display: flex; gap: 5px;">
-                    <button class="btn-icon" style="color:#3498db; margin:0;" onclick="openHistoryLoader()"><i class="fas fa-calendar-plus"></i></button>
-                    <button class="btn-icon" style="color:#ff3b3b; margin:0;" onclick="resetPeriodProfit()"><i class="fas fa-undo"></i></button>
+                    <button class="btn-icon help-trigger" style="color:#3498db; margin:0;" onclick="openHistoryLoader()" data-title="Calendario+" data-help="Carga Histórica: Registra movimientos con fechas pasadas sin alterar el flujo de caja actual si así lo deseas."><i class="fas fa-calendar-plus"></i></button>
+                    <button class="btn-icon help-trigger" style="color:#ff3b3b; margin:0;" onclick="resetPeriodProfit()" data-title="Botón Reiniciar" data-help="Limpia el contador de ganancias netas para empezar un nuevo periodo (semana o mes). No borra saldos de banco."><i class="fas fa-undo"></i></button>
                 </div>
                 <div style="position: absolute; right: 10px; top: 10px;">
-                    <button class="btn-icon" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()"><i class="fas fa-search"></i></button>
-                    <button class="btn-icon" style="color:#ff9900; margin:0;" onclick="openCierreHistory()"><i class="fas fa-history"></i></button>
+                    <button class="btn-icon help-trigger" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()" data-title="Lupita de Búsqueda" data-help="Busca y calcula la ganancia total entre dos fechas específicas para realizar cortes o cierres."><i class="fas fa-search"></i></button>
+                    <button class="btn-icon help-trigger" style="color:#ff9900; margin:0;" onclick="openCierreHistory()" data-title="Botón Historial" data-help="Ver todos los cierres y reportes que has guardado anteriormente en el sistema."><i class="fas fa-history"></i></button>
                 </div>
                 <h3>Ganancia Neta</h3><p id="net-profit">₡0</p>
             </div>
@@ -126,17 +130,17 @@ input:checked + .slider:before { transform: translateX(20px); }
                 </div>
             </div>
 
-            <div class="card balance"><h3>Capital Actual</h3><p id="total-balance">₡0</p></div>
-            <div class="card"><h3>En Banco</h3><p class="bank-color" id="val-bank">₡0</p></div>
-            <div class="card"><h3>En Efectivo</h3><p class="cash-color" id="val-cash">₡0</p></div>
+            <div class="card balance help-trigger" data-title="Capital Actual" data-help="Suma total de tu dinero disponible (Banco + Efectivo)."><h3>Capital Actual</h3><p id="total-balance">₡0</p></div>
+            <div class="card help-trigger" data-title="En Banco" data-help="Dinero disponible en tarjetas, transferencias o SIMPE."><h3>En Banco</h3><p class="bank-color" id="val-bank">₡0</p></div>
+            <div class="card help-trigger" data-title="En Efectivo" data-help="Dinero físico disponible en la caja del local."><h3>En Efectivo</h3><p class="cash-color" id="val-cash">₡0</p></div>
         </div>
 
         <div class="form-box">
             <input type="text" id="amount" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
             <input type="text" id="desc" placeholder="Motivo...">
-            <button class="btn btn-in" onclick="openMethodModal('IN')">REGISTRAR INGRESO</button>
-            <button class="btn btn-out" onclick="openMethodModal('OUT')">REGISTRAR EGRESO</button>
-            <button class="btn btn-adj" onclick="openAdjModal()">AJUSTE DE CAPITAL</button>
+            <button class="btn btn-in help-trigger" onclick="openMethodModal('IN')" data-title="Registro Ingreso" data-help="Suma dinero a tus cuentas y lo cuenta como ganancia neta.">REGISTRAR INGRESO</button>
+            <button class="btn btn-out help-trigger" onclick="openMethodModal('OUT')" data-title="Registro Egreso" data-help="Resta dinero de tus cuentas y se descuenta de la ganancia neta.">REGISTRAR EGRESO</button>
+            <button class="btn btn-adj help-trigger" onclick="openAdjModal()" data-title="Ajuste Capital" data-help="Mueve el saldo de banco o efectivo sin afectar la ganancia neta. Ideal para corregir errores de saldo.">AJUSTE DE CAPITAL</button>
         </div>
 
         <div style="margin-bottom:15px; background:#1a1a1a; padding:10px; border-radius:10px;">
@@ -155,7 +159,7 @@ input:checked + .slider:before { transform: translateX(20px); }
         <div class="form-box">
             <input type="text" id="staff-name" placeholder="Nombre">
             <input type="text" id="staff-rate" placeholder="Precio hora (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
-            <button class="btn btn-adj" onclick="addStaff()">AGREGAR EMPLEADO</button>
+            <button class="btn btn-adj help-trigger" onclick="addStaff()" data-title="Agregar Personal" data-help="Crea la ficha de un nuevo trabajador asignándole su salario por hora.">AGREGAR EMPLEADO</button>
         </div>
         <div id="staff-list"></div>
     </div>
@@ -181,9 +185,15 @@ input:checked + .slider:before { transform: translateX(20px); }
             <label class="input-label">Nuevo PIN</label>
             <input type="password" id="new-pin-input" placeholder="Ingrese nuevo PIN" maxlength="4" inputmode="numeric">
             <button class="btn btn-adj" onclick="changePin()">CAMBIAR PIN</button>
-            <button class="btn-danger-clear" onclick="confirmFullReset()">Borrar todo el sistema</button>
+            <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
+</div>
+
+<div id="help-card">
+    <span class="close-x" onclick="document.getElementById('help-card').style.display='none'">×</span>
+    <h3 id="help-title" style="color:#0026ff; margin-top:0;"></h3>
+    <p id="help-text" style="font-size:0.9rem; color:#ccc; line-height:1.4; margin-bottom:0;"></p>
 </div>
 
 <input type="file" id="table-file-input" accept="image/*" style="display:none" onchange="processTableFile(this)">
@@ -212,7 +222,32 @@ let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISO
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
 let pendingType = "", activeMovementId = null, activeStaffIndex = null;
 
-window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); };
+window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); initManual(); };
+
+// CIRUGÍA: Manual de usuario ultra ligero y estable
+let manualTimer;
+function initManual() {
+    document.addEventListener('contextmenu', e => { if(e.target.closest('.help-trigger')) e.preventDefault(); });
+
+    const triggers = document.querySelectorAll('.help-trigger');
+    triggers.forEach(el => {
+        const start = (e) => {
+            manualTimer = setTimeout(() => {
+                if ("vibrate" in navigator) navigator.vibrate(50);
+                document.getElementById('help-title').innerText = el.dataset.title;
+                document.getElementById('help-text').innerText = el.dataset.help;
+                document.getElementById('help-card').style.display = 'block';
+            }, 1500);
+        };
+        const cancel = () => clearTimeout(manualTimer);
+
+        el.addEventListener('mousedown', start);
+        el.addEventListener('touchstart', start, {passive: true});
+        el.addEventListener('mouseup', cancel);
+        el.addEventListener('mouseleave', cancel);
+        el.addEventListener('touchend', cancel);
+    });
+}
 
 function applyBusinessIdentity() {
     const loginArea = document.getElementById('login-logo-area');
@@ -316,7 +351,17 @@ function updateUI() {
         if (m.date > lastResetDate && !m.historical) { if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; }
         let colorClass = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
         const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
-        body.innerHTML += `<tr><td style="white-space:nowrap">${getFormatedDate(m.date)}</td><td>${m.desc}<br><small>${m.method}</small></td><td style="text-align:center">${imgBtn}</td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteMovement(${m.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+        
+        body.innerHTML += `<tr>
+            <td style="white-space:nowrap">${getFormatedDate(m.date)}</td>
+            <td>${m.desc}<br><small>${m.method}</small></td>
+            <td style="text-align:center">${imgBtn}</td>
+            <td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td>
+            <td style="text-align:right; white-space:nowrap;">
+                <button class="btn-icon" style="color:#0026ff" onclick="editMovement(${m.id})"><i class="fas fa-edit"></i></button>
+                <button class="btn-icon" style="color:#ff3b3b" onclick="deleteMovement(${m.id})"><i class="fas fa-trash"></i></button>
+            </td>
+        </tr>`;
     });
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
     document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash, 2);
@@ -554,6 +599,36 @@ function executeEntry(m, ot = null) {
     document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
 function deleteMovement(id) { showConfirm("¿Eliminar?", () => { movements = movements.filter(m => m.id !== id); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }); }
+
+function editMovement(id) {
+    const m = movements.find(x => x.id === id);
+    if(!m) return;
+    const html = `
+        <div class="form-box" style="background:transparent; border:none; padding:0;">
+            <label class="input-label">Monto Actual: ₡${formatVisual(m.amount)}</label>
+            <input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal">
+            <label class="input-label">Motivo</label>
+            <input type="text" id="edit-dsc" value="${m.desc}">
+            <button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button>
+        </div>
+    `;
+    openModal("Editar Movimiento", html);
+}
+
+function saveEditMovement(id) {
+    const newAmt = cleanAmount(document.getElementById('edit-amt').value);
+    const newDsc = document.getElementById('edit-dsc').value;
+    const mIdx = movements.findIndex(x => x.id === id);
+    if(mIdx !== -1) {
+        movements[mIdx].amount = newAmt;
+        movements[mIdx].desc = newDsc;
+        localStorage.setItem('copo_data', JSON.stringify(movements));
+        updateUI();
+        closeModal('history-modal');
+        showMsg("Cambios aplicados.");
+    }
+}
+
 function addStaff() { 
     const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value); 
     if(!n || !r) return; 
@@ -565,7 +640,6 @@ function deleteStaff(i) { showConfirm("¿Eliminar?", () => { staff.splice(i,1); 
 function updateStaffRate(i) { const html = `<div style="text-align:center;"><p>Nueva tarifa para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Nueva Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR</button></div>`; openModal("Ajustar Precio Hora", html); }
 function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val > 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); } }
 
-// CIRUGÍA: Etiquetas DESDE y HASTA en la consulta por Lupita de Planilla
 function checkPeriodStaff(i) { 
     openModal(`Consulta: ${staff[i].name}`, `
         <div style="text-align:left;">
@@ -591,7 +665,28 @@ function confirmFullReset() {
             <b>¿Realmente desea eliminar TODO el sistema?</b>
         </div>
     `;
-    showConfirm(adv, () => { localStorage.clear(); location.reload(); });
+    showConfirm(adv, () => {
+        const pinHtml = `
+            <div style="text-align:center;">
+                <p style="color:#ff3b3b; font-weight:bold;">Para proceder, ingrese su PIN de acceso:</p>
+                <input type="password" id="reset-pin-confirm" class="pin-input" style="width:150px; margin: 15px auto;" maxlength="4" inputmode="numeric" placeholder="****">
+                <button class="btn btn-out" onclick="executeFinalReset()">BORRAR DEFINITIVAMENTE</button>
+            </div>
+        `;
+        openModal("Seguridad Adicional", pinHtml);
+    });
+}
+
+async function executeFinalReset() {
+    const pinInput = document.getElementById('reset-pin-confirm').value;
+    const hashed = await hashPin(pinInput);
+    if (hashed === secure_pin_hash) {
+        localStorage.clear();
+        location.reload();
+    } else {
+        showMsg("PIN Incorrecto. Acción cancelada por seguridad.");
+        closeModal('history-modal');
+    }
 }
 
 function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
@@ -680,7 +775,6 @@ function saveHistoricalCierre(f, t, total, ing, egr) {
     });
 }
 
-// CIRUGÍA: Botón switch agregado al cargador de historial
 function openHistoryLoader() { 
     const html = `
         <div class="form-box" style="background:transparent; border:none; padding:0;">
@@ -707,7 +801,6 @@ function openHistoryLoader() {
     openModal("Carga Histórica", html); 
 }
 
-// CIRUGÍA: Lógica de guardado que respeta el switch de ganancia neta
 function saveOldMove(apply) { 
     const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value; 
     const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; 
@@ -715,7 +808,6 @@ function saveOldMove(apply) {
 
     if(!d || !a || !s) return showMsg("Faltan datos"); 
     
-    // Si affectProfit es verdadero, la fecha se registra con un micro-segundo adicional a la fecha de reinicio para que el sistema lo cuente.
     const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
 
     movements.unshift({ 
