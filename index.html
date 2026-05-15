@@ -560,6 +560,7 @@ function deleteCierre(id) {
     });
 }
 
+// CIRUGÍA: Función Reset simplificada sin candado
 function resetPeriodProfit() { 
     showConfirm("¿Deseas reiniciar las ganancias de este periodo?", () => { 
         lastResetDate = new Date().toISOString(); 
@@ -569,19 +570,29 @@ function resetPeriodProfit() {
     }); 
 }
 
+// CIRUGÍA QUIRÚRGICA: Ahora ignora movimientos de AJUSTE (ADJ_IN y ADJ_OUT)
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
     if(!f || !t) return showMsg("Faltan fechas"); 
     let i=0, e=0; 
     const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
-    movements.forEach(m => { if(m.date >= fT && m.date <= tT) { if(m.type.includes('IN')) i+=m.amount; else e+=m.amount; } }); 
+    
+    // Solo sumamos si es IN o OUT estricto (Ventas o Gastos reales)
+    movements.forEach(m => { 
+        if(m.date >= fT && m.date <= tT) { 
+            if(m.type === 'IN') i += m.amount; 
+            else if(m.type === 'OUT') e += m.amount; 
+        } 
+    }); 
+    
     const ganancia = i - e;
     openModal("Reporte de Periodo", `
         <div style="text-align:center;">
             <h3 class="profit">Balance: ₡${formatVisual(ganancia, 2)}</h3>
-            <p>Ingresos: ₡${formatVisual(i, 2)}</p>
-            <p class="expense">Egresos: ₡${formatVisual(e, 2)}</p>
+            <p>Ingresos Reales: ₡${formatVisual(i, 2)}</p>
+            <p class="expense">Egresos Reales: ₡${formatVisual(e, 2)}</p>
             <hr style="border:1px solid #333; margin:15px 0;">
+            <p style="font-size:0.75rem; color:#888;">* Los ajustes de capital han sido excluidos de este reporte.</p>
             <button class="btn btn-in" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e})">HACER CIERRE</button>
         </div>
     `); 
