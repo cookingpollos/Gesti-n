@@ -18,7 +18,7 @@ header { border-bottom: 2px solid #0026ff; padding-bottom: 10px; margin-bottom: 
 .logo-small { font-weight: bold; border: 2px solid white; padding: 4px 8px; cursor: pointer; }
 .logo-img { max-height: 45px; max-width: 140px; object-fit: contain; cursor: pointer; }
 .owner-text { font-size: 0.9rem; font-weight: bold; color: #888; border-left: 1px solid #333; padding-left: 15px; }
-.logo-login { max-height: 100px; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; cursor: pointer; }
+.logo-login { max-height: 100px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; cursor: pointer; }
 
 .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
 .tab-btn { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; }
@@ -77,12 +77,16 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 #help-card { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #1a1a1a; border: 2px solid #0026ff; border-radius: 15px; padding: 20px; z-index: 20000; box-shadow: 0 0 30px rgba(0,38,255,0.4); animation: slideUp 0.3s ease; }
 @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
+
+/* Estilo para la versión */
+.version-label { text-align: center; font-size: 0.7rem; color: #444; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
 </style>
 </head>
 <body id="main-body">
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
+    <div class="version-label">VERSIÓN 4.0</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -191,6 +195,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
+    <div class="version-label">VERSIÓN 4.0</div>
 </div>
 
 <div id="help-card">
@@ -227,7 +232,6 @@ let pendingType = "", activeMovementId = null, activeStaffIndex = null;
 
 window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); initManual(); };
 
-// CORRECCIÓN CIRUGÍA: Escucha con cronómetro de 1.5s recuperado
 let manualTimer;
 function initManual() {
     document.addEventListener('contextmenu', e => { if(e.target.closest('.help-trigger')) e.preventDefault(); });
@@ -236,13 +240,13 @@ function initManual() {
         const el = e.target.closest('.help-trigger');
         if(!el) return;
         
-        clearTimeout(manualTimer); // Limpiar por si acaso
+        clearTimeout(manualTimer); 
         manualTimer = setTimeout(() => {
             if ("vibrate" in navigator) navigator.vibrate(50);
             document.getElementById('help-title').innerText = el.dataset.title;
             document.getElementById('help-text').innerText = el.dataset.help;
             document.getElementById('help-card').style.display = 'block';
-        }, 1500); // Volvemos al segundo y medio exigido
+        }, 1500); 
     };
 
     const handleCancel = () => clearTimeout(manualTimer);
@@ -300,7 +304,18 @@ function updateBusinessLogo(input) {
 function saveBusinessIdentity() { bizData.name = document.getElementById('biz-name-input').value || "CoPo Admin"; bizData.owner = document.getElementById('owner-name-input').value; localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); applyBusinessIdentity(); showMsg("Guardado."); }
 
 async function hashPin(pin) { const msgUint8 = new TextEncoder().encode(pin); const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8); return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join(''); }
-async function validatePin() { const hashed = await hashPin(document.getElementById('pin').value); if (hashed === secure_pin_hash) { document.getElementById('login-screen').style.display = 'none'; document.getElementById('admin-panel').style.display = 'block'; updateUI(); renderStaff(); } else { showMsg("PIN Incorrecto"); document.getElementById('pin').value = ""; } }
+async function validatePin() { 
+    const val = document.getElementById('pin').value;
+    if(!val) return;
+    const hashed = await hashPin(val); 
+    if (hashed === secure_pin_hash) { 
+        document.getElementById('login-screen').style.display = 'none'; 
+        document.getElementById('admin-panel').style.display = 'block'; 
+        updateUI(); renderStaff(); 
+    } else { 
+        showMsg("PIN Incorrecto"); document.getElementById('pin').value = ""; 
+    } 
+}
 
 async function changePin() { 
     const currentPin = document.getElementById('current-pin-input').value;
@@ -763,7 +778,7 @@ function searchInPeriod() {
     
     let tableHtml = `<div class="history-wrapper" style="margin-top:15px; max-height:200px;"><table><tbody>`;
     matches.forEach(m => {
-        let color = (m.type === 'OUT') ? 'expense' : 'profit';
+        let color = (m.type === 'OUT' ) ? 'expense' : 'profit';
         tableHtml += `<tr><td style="font-size:0.7rem;">${formatDateSlash(m.date.split('T')[0])}</td><td style="font-size:0.7rem;">${m.desc}</td><td class="${color}" style="text-align:right; font-weight:bold; font-size:0.7rem;">₡${formatVisual(m.amount)}</td></tr>`;
     });
     tableHtml += `</tbody></table></div>`;
