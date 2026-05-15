@@ -61,7 +61,7 @@ td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 .staff-bar.active .staff-content { display: block; }
 .btn-icon { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin-left: 8px; }
 
-.modal { display: none; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); padding: 10px; box-sizing: border-box; align-items: center; justify-content: center; }
+.modal { display: none; position: fixed; z-index: 13000; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); padding: 10px; box-sizing: border-box; align-items: center; justify-content: center; }
 .modal-content-wrapper { position: relative; background: #1a1a1a; width: 100%; max-width: 500px; padding: 20px; border-radius: 15px; border: 1px solid #333; margin: auto; max-height: 90vh; overflow-y: auto; }
 .close-x { position: absolute; top: 10px; right: 15px; color: #ff3b3b; font-size: 1.8rem; cursor: pointer; font-weight: bold; z-index: 100; }
 
@@ -111,12 +111,21 @@ input:checked + .slider:before { transform: translateX(20px); }
                 </div>
                 <h3>Ganancia Neta</h3><p id="net-profit">₡0</p>
             </div>
+            
             <div id="cierre-search" class="search-box-inline" style="grid-column: span 2; display:none; background:#000; padding:10px; border-radius:10px; margin-bottom:10px;">
-                <div style="display:flex; gap:5px;">
-                    <input type="date" id="c-from" style="margin:0;"><input type="date" id="c-to" style="margin:0;">
-                    <button class="btn btn-in" style="margin:0; padding:0 10px;" onclick="searchInPeriod()"><i class="fas fa-check"></i></button>
+                <div style="display:flex; gap:5px; align-items: flex-end;">
+                    <div style="flex:1;">
+                        <span style="font-size:0.6rem; color:#888; font-weight:bold; margin-left:5px;">DESDE</span>
+                        <input type="date" id="c-from" style="margin:0;">
+                    </div>
+                    <div style="flex:1;">
+                        <span style="font-size:0.6rem; color:#888; font-weight:bold; margin-left:5px;">HASTA</span>
+                        <input type="date" id="c-to" style="margin:0;">
+                    </div>
+                    <button class="btn btn-in" style="margin:0; padding:0 15px; height:42px;" onclick="searchInPeriod()"><i class="fas fa-check"></i></button>
                 </div>
             </div>
+
             <div class="card balance"><h3>Capital Actual</h3><p id="total-balance">₡0</p></div>
             <div class="card"><h3>En Banco</h3><p class="bank-color" id="val-bank">₡0</p></div>
             <div class="card"><h3>En Efectivo</h3><p class="cash-color" id="val-cash">₡0</p></div>
@@ -179,10 +188,19 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <input type="file" id="table-file-input" accept="image/*" style="display:none" onchange="processTableFile(this)">
 
-<div id="imgModal" class="modal" style="z-index: 10000;"><div class="modal-content-wrapper" style="max-width: 95vw; padding: 5px;"><span class="close-x" onclick="closeModal('imgModal')">×</span><img id="imgZoom" style="width:100%; border-radius:10px; display: block;"></div></div>
+<div id="imgModal" class="modal" style="z-index: 12000;">
+    <div class="modal-content-wrapper" style="max-width: 95vw; padding: 5px; position: relative;">
+        <span class="close-x" onclick="closeModal('imgModal')">×</span>
+        <button id="btn-del-photo" onclick="deleteCurrentPhoto()" style="position: absolute; top: 10px; left: 15px; background: rgba(255,59,59,0.8); border: none; color: white; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 1.2rem; display: none; z-index: 101;">
+            <i class="fas fa-trash"></i>
+        </button>
+        <img id="imgZoom" style="width:100%; border-radius:10px; display: block;">
+    </div>
+</div>
+
 <div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
 <div id="adj-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeAdjModal()">×</span><h3 style="color:white;">Ajuste Capital</h3><button class="btn btn-in" onclick="executeEntry('EFECTIVO', 'ADJ_IN')">+ Efectivo</button><button class="btn btn-in" onclick="executeEntry('BANCO', 'ADJ_IN')">+ Banco</button><hr style="border:1px solid #333;"><button class="btn btn-out" onclick="executeEntry('EFECTIVO', 'ADJ_OUT')">- Efectivo</button><button class="btn btn-out" onclick="executeEntry('BANCO', 'ADJ_OUT')">- Banco</button></div></div>
-<div id="history-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('history-modal')">×</span><h3 id="modal-title" style="color:white; margin-bottom:15px;"></h3><div id="modal-content"></div></div></div>
+<div id="history-modal" class="modal" style="z-index: 9999;"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('history-modal')">×</span><h3 id="modal-title" style="color:white; margin-bottom:15px;"></h3><div id="modal-content"></div></div></div>
 <div id="custom-dialog" class="modal"><div class="modal-content-wrapper" style="text-align:center;"><h3 id="dialog-title">Aviso</h3><div id="dialog-msg" style="color:#ccc; margin-bottom: 20px;"></div><div id="dialog-buttons" style="display:flex; gap:10px; margin-top:20px;"></div></div></div>
 
 <script>
@@ -297,7 +315,7 @@ function updateUI() {
         if (!m.historical) { if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; }
         if (m.date > lastResetDate && !m.historical) { if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; }
         let colorClass = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
-        const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}')">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
+        const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
         body.innerHTML += `<tr><td style="white-space:nowrap">${getFormatedDate(m.date)}</td><td>${m.desc}<br><small>${m.method}</small></td><td style="text-align:center">${imgBtn}</td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteMovement(${m.id})"><i class="fas fa-trash"></i></button></td></tr>`;
     });
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
@@ -373,7 +391,7 @@ function openStaffHistory(i) {
         else if(sh.type === 'AGUINALDO') det = `<i class="fas fa-piggy-bank"></i> ${sh.desc}`;
         else if(sh.type === 'PAYMENT_SUELDO') { det = `<i class="fas fa-check"></i> ${sh.desc}`; colorClass = 'adj-color'; }
         else if(sh.type === 'PAYMENT_AGUINALDO') { det = `<i class="fas fa-gift"></i> Pago Aguinaldo`; colorClass = 'adj-color'; }
-        const imgBtn = sh.img ? `<img src="${sh.img}" class="img-preview-mini" onclick="zoomImage('${sh.img}')">` : `<button class="btn-add-img" onclick="triggerFileSelect(${sh.id}, ${i})"><i class="fas fa-plus-circle"></i></button>`;
+        const imgBtn = sh.img ? `<img src="${sh.img}" class="img-preview-mini" onclick="zoomImage('${sh.img}', ${sh.id}, ${i})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${sh.id}, ${i})"><i class="fas fa-plus-circle"></i></button>`;
         h += `<tr><td style="white-space:nowrap">${getFormatedDate(sh.date)}</td><td>${det}</td><td style="text-align:center">${imgBtn}</td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(sh.earned)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaffMovement(${i}, ${sh.id})"><i class="fas fa-trash"></i></button></td></tr>`;
     });
     openModal("Actividad: " + staff[i].name, h + "</tbody></table></div>");
@@ -475,7 +493,46 @@ function addAguinaldoToStaff(i, monto, f, t) {
 
 function openModal(t, c) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerHTML = c; document.getElementById('history-modal').style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-function zoomImage(s) { document.getElementById('imgZoom').src = s; document.getElementById('imgModal').style.display = 'flex'; }
+
+function zoomImage(s, id = null, staffIdx = null) { 
+    document.getElementById('imgZoom').src = s; 
+    const delBtn = document.getElementById('btn-del-photo');
+    if(id) {
+        activeMovementId = id;
+        activeStaffIndex = staffIdx;
+        delBtn.style.display = 'block';
+    } else {
+        delBtn.style.display = 'none';
+    }
+    document.getElementById('imgModal').style.display = 'flex'; 
+}
+
+function deleteCurrentPhoto() {
+    showConfirm("¿Borrar esta imagen?", () => {
+        if (activeStaffIndex !== null) {
+            const sIdx = activeStaffIndex;
+            const mId = activeMovementId;
+            const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === mId);
+            if (shiftIdx !== -1) {
+                staff[sIdx].shifts[shiftIdx].img = "";
+                saveStaff();
+                closeModal('imgModal');
+                closeModal('history-modal');
+                openStaffHistory(sIdx);
+            }
+        } else if (activeMovementId !== null) {
+            const mIdx = movements.findIndex(m => m.id === activeMovementId);
+            if (mIdx !== -1) {
+                movements[mIdx].img = "";
+                localStorage.setItem('copo_data', JSON.stringify(movements));
+                updateUI();
+                closeModal('imgModal');
+            }
+        }
+        activeMovementId = null; activeStaffIndex = null;
+    });
+}
+
 function showMsg(msg) { document.getElementById('dialog-title').innerText = "Aviso"; document.getElementById('dialog-msg').innerText = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" onclick="closeDialog()">OK</button>`; document.getElementById('custom-dialog').style.display = 'flex'; }
 function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; }
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
@@ -507,7 +564,21 @@ function addStaff() {
 function deleteStaff(i) { showConfirm("¿Eliminar?", () => { staff.splice(i,1); saveStaff(); renderStaff(); }); }
 function updateStaffRate(i) { const html = `<div style="text-align:center;"><p>Nueva tarifa para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Nueva Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR</button></div>`; openModal("Ajustar Precio Hora", html); }
 function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val > 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); } }
-function checkPeriodStaff(i) { openModal(`Consulta: ${staff[i].name}`, `<input type="date" id="p-from"><input type="date" id="p-to"><button class="btn btn-adj" onclick="calcPeriodStaff(${i})">CALCULAR</button><div id="p-res"></div>`); }
+
+// CIRUGÍA: Etiquetas DESDE y HASTA en la consulta por Lupita de Planilla
+function checkPeriodStaff(i) { 
+    openModal(`Consulta: ${staff[i].name}`, `
+        <div style="text-align:left;">
+            <span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">DESDE</span>
+            <input type="date" id="p-from" style="margin-bottom:10px;">
+            <span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">HASTA</span>
+            <input type="date" id="p-to" style="margin-bottom:15px;">
+            <button class="btn btn-adj" onclick="calcPeriodStaff(${i})">CALCULAR</button>
+            <div id="p-res"></div>
+        </div>
+    `); 
+}
+
 function calcPeriodStaff(i) { const f = new Date(document.getElementById('p-from').value + "T00:00:00").getTime(), t = new Date(document.getElementById('p-to').value + "T23:59:59").getTime(); let m = 0; staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t) m += sh.earned; }); document.getElementById('p-res').innerHTML = `<hr><h3>₡${formatVisual(m)}</h3>`; }
 function showTab(t) { document.getElementById('tab-contabilidad').style.display = t === 'contabilidad' ? 'block' : 'none'; document.getElementById('tab-planilla').style.display = t === 'planilla' ? 'block' : 'none'; document.getElementById('tab-configuracion').style.display = t === 'configuracion' ? 'block' : 'none'; document.getElementById('btn-tab-contabilidad').classList.toggle('active', t === 'contabilidad'); document.getElementById('btn-tab-planilla').classList.toggle('active', t === 'planilla'); }
 
@@ -533,7 +604,6 @@ function openCierreHistory() {
     openModal("Historial de Cierres", h + "</tbody></table></div>"); 
 }
 
-// CIRUGÍA QUIRÚRGICA: Ajuste de colores, orden y formato en Detalle de Cierre (Historial)
 function verDetalleCierre(id) {
     const c = cierres.find(x => x.id === id);
     if(!c) return;
@@ -569,7 +639,6 @@ function resetPeriodProfit() {
     }); 
 }
 
-// CIRUGÍA QUIRÚRGICA: Ajuste de colores y orden en Reporte de Periodo (Lupita)
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
     if(!f || !t) return showMsg("Faltan fechas"); 
@@ -611,12 +680,54 @@ function saveHistoricalCierre(f, t, total, ing, egr) {
     });
 }
 
-function openHistoryLoader() { const html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><input type="date" id="old-date"><input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal"><input type="text" id="old-dsc" placeholder="Motivo"><select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select><select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option><option value="TRANSFERENCIA">🏦 TRANSF.</option><option value="TARJETA">💳 TARJETA</option></select><button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button><button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button></div>`; openModal("Carga Histórica", html); }
+// CIRUGÍA: Botón switch agregado al cargador de historial
+function openHistoryLoader() { 
+    const html = `
+        <div class="form-box" style="background:transparent; border:none; padding:0;">
+            <input type="date" id="old-date">
+            <input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
+            <input type="text" id="old-dsc" placeholder="Motivo">
+            <select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select>
+            <select id="old-method">
+                <option value="EFECTIVO">💵 EFECTIVO</option>
+                <option value="SIMPE">📲 SIMPE</option>
+                <option value="TRANSFERENCIA">🏦 TRANSF.</option>
+                <option value="TARJETA">💳 TARJETA</option>
+            </select>
+            <button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button>
+            <button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button>
+            <div class="toggle-box" style="margin-top:10px;">
+                <span style="color:#888; font-size:0.75rem;">Afectar Ganancia Neta</span>
+                <label class="switch">
+                    <input type="checkbox" id="old-affect-profit">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>`; 
+    openModal("Carga Histórica", html); 
+}
+
+// CIRUGÍA: Lógica de guardado que respeta el switch de ganancia neta
 function saveOldMove(apply) { 
     const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value; 
     const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; 
+    const affectProfit = document.getElementById('old-affect-profit').checked;
+
     if(!d || !a || !s) return showMsg("Faltan datos"); 
-    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), historical: !apply }); 
+    
+    // Si affectProfit es verdadero, la fecha se registra con un micro-segundo adicional a la fecha de reinicio para que el sistema lo cuente.
+    const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
+
+    movements.unshift({ 
+        id: Date.now(), 
+        type: t, 
+        amount: a, 
+        desc: s + (affectProfit ? " (Post-Cierre)" : ""), 
+        method: m, 
+        date: finalDate, 
+        historical: !apply 
+    }); 
+    
     movements.sort((x,y) => new Date(y.date) - new Date(x.date)); 
     localStorage.setItem('copo_data', JSON.stringify(movements)); 
     updateUI(); closeModal('history-modal'); 
