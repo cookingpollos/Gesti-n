@@ -75,7 +75,6 @@ input:checked + .slider { background-color: #0026ff; }
 input:checked + .slider:before { transform: translateX(20px); }
 .input-label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 5px; font-weight: bold; text-transform: uppercase; text-align: left; }
 
-/* CIRUGÍA: Estilo del Cuadro de Ayuda Estático */
 #help-card { display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: #1a1a1a; border: 2px solid #0026ff; border-radius: 15px; padding: 20px; z-index: 20000; box-shadow: 0 0 30px rgba(0,38,255,0.4); animation: slideUp 0.3s ease; }
 @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
 </style>
@@ -110,23 +109,27 @@ input:checked + .slider:before { transform: translateX(20px); }
                     <button class="btn-icon help-trigger" style="color:#ff3b3b; margin:0;" onclick="resetPeriodProfit()" data-title="Botón Reiniciar" data-help="Limpia el contador de ganancias netas para empezar un nuevo periodo (semana o mes). No borra saldos de banco."><i class="fas fa-undo"></i></button>
                 </div>
                 <div style="position: absolute; right: 10px; top: 10px;">
-                    <button class="btn-icon help-trigger" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()" data-title="Lupita de Búsqueda" data-help="Busca y calcula la ganancia total entre dos fechas específicas para realizar cortes o cierres."><i class="fas fa-search"></i></button>
+                    <button class="btn-icon help-trigger" style="color:#25D366; margin:0;" onclick="toggleCierreSearch()" data-title="Lupita de Búsqueda" data-help="Busca y calcula la ganancia total entre dos fechas específicas. También permite filtrar por palabra clave (ej. Gasolina)."><i class="fas fa-search"></i></button>
                     <button class="btn-icon help-trigger" style="color:#ff9900; margin:0;" onclick="openCierreHistory()" data-title="Botón Historial" data-help="Ver todos los cierres y reportes que has guardado anteriormente en el sistema."><i class="fas fa-history"></i></button>
                 </div>
                 <h3>Ganancia Neta</h3><p id="net-profit">₡0</p>
             </div>
             
-            <div id="cierre-search" class="search-box-inline" style="grid-column: span 2; display:none; background:#000; padding:10px; border-radius:10px; margin-bottom:10px;">
-                <div style="display:flex; gap:5px; align-items: flex-end;">
-                    <div style="flex:1;">
+            <div id="cierre-search" class="search-box-inline" style="grid-column: span 2; display:none; background:#1a1a1a; padding:15px; border-radius:15px; margin-bottom:15px; border: 1px solid #333;">
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
+                    <div>
                         <span style="font-size:0.6rem; color:#888; font-weight:bold; margin-left:5px;">DESDE</span>
                         <input type="date" id="c-from" style="margin:0;">
                     </div>
-                    <div style="flex:1;">
+                    <div>
                         <span style="font-size:0.6rem; color:#888; font-weight:bold; margin-left:5px;">HASTA</span>
                         <input type="date" id="c-to" style="margin:0;">
                     </div>
-                    <button class="btn btn-in" style="margin:0; padding:0 15px; height:42px;" onclick="searchInPeriod()"><i class="fas fa-check"></i></button>
+                </div>
+                <div style="display:block;">
+                    <span style="font-size:0.6rem; color:#888; font-weight:bold; margin-left:5px;">PALABRA CLAVE (OPCIONAL)</span>
+                    <input type="text" id="c-keyword" placeholder="Ej: Gasolina, Pollo..." style="margin-bottom:10px;">
+                    <button class="btn btn-in" style="margin:0; width:100%; height:46px;" onclick="searchInPeriod()"><i class="fas fa-search" style="margin-right:8px;"></i> CONSULTAR PERIODO</button>
                 </div>
             </div>
 
@@ -224,29 +227,31 @@ let pendingType = "", activeMovementId = null, activeStaffIndex = null;
 
 window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); initManual(); };
 
-// CIRUGÍA: Manual de usuario ultra ligero y estable
+// CORRECCIÓN CIRUGÍA: Escucha con cronómetro de 1.5s recuperado
 let manualTimer;
 function initManual() {
     document.addEventListener('contextmenu', e => { if(e.target.closest('.help-trigger')) e.preventDefault(); });
 
-    const triggers = document.querySelectorAll('.help-trigger');
-    triggers.forEach(el => {
-        const start = (e) => {
-            manualTimer = setTimeout(() => {
-                if ("vibrate" in navigator) navigator.vibrate(50);
-                document.getElementById('help-title').innerText = el.dataset.title;
-                document.getElementById('help-text').innerText = el.dataset.help;
-                document.getElementById('help-card').style.display = 'block';
-            }, 1500);
-        };
-        const cancel = () => clearTimeout(manualTimer);
+    const handleStart = (e) => {
+        const el = e.target.closest('.help-trigger');
+        if(!el) return;
+        
+        clearTimeout(manualTimer); // Limpiar por si acaso
+        manualTimer = setTimeout(() => {
+            if ("vibrate" in navigator) navigator.vibrate(50);
+            document.getElementById('help-title').innerText = el.dataset.title;
+            document.getElementById('help-text').innerText = el.dataset.help;
+            document.getElementById('help-card').style.display = 'block';
+        }, 1500); // Volvemos al segundo y medio exigido
+    };
 
-        el.addEventListener('mousedown', start);
-        el.addEventListener('touchstart', start, {passive: true});
-        el.addEventListener('mouseup', cancel);
-        el.addEventListener('mouseleave', cancel);
-        el.addEventListener('touchend', cancel);
-    });
+    const handleCancel = () => clearTimeout(manualTimer);
+
+    document.addEventListener('mousedown', handleStart);
+    document.addEventListener('touchstart', handleStart, {passive: true});
+    document.addEventListener('mouseup', handleCancel);
+    document.addEventListener('mouseleave', handleCancel);
+    document.addEventListener('touchend', handleCancel);
 }
 
 function applyBusinessIdentity() {
@@ -736,41 +741,54 @@ function resetPeriodProfit() {
 
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
+    const kw = document.getElementById('c-keyword').value.toLowerCase().trim();
     if(!f || !t) return showMsg("Faltan fechas"); 
-    let i=0, e=0; 
+    
+    let i=0, e=0, matches = []; 
     const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
     
     movements.forEach(m => { 
-        if(m.date >= fT && m.date <= tT) { 
+        const inDate = m.date >= fT && m.date <= tT;
+        const inKeyword = kw === "" || m.desc.toLowerCase().includes(kw) || m.method.toLowerCase().includes(kw);
+        
+        if(inDate && inKeyword) { 
             if(m.type === 'IN') i += m.amount; 
-            else if(m.type === 'OUT') e += m.amount; 
+            else if(m.type === 'OUT') e += m.amount;
+            matches.push(m);
         } 
     }); 
     
     const ganancia = i - e;
-    const notaPeriodo = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
+    const notaPeriodo = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` - Filtro: "${kw}"` : "");
     
+    let tableHtml = `<div class="history-wrapper" style="margin-top:15px; max-height:200px;"><table><tbody>`;
+    matches.forEach(m => {
+        let color = (m.type === 'OUT') ? 'expense' : 'profit';
+        tableHtml += `<tr><td style="font-size:0.7rem;">${formatDateSlash(m.date.split('T')[0])}</td><td style="font-size:0.7rem;">${m.desc}</td><td class="${color}" style="text-align:right; font-weight:bold; font-size:0.7rem;">₡${formatVisual(m.amount)}</td></tr>`;
+    });
+    tableHtml += `</tbody></table></div>`;
+
     openModal("Detalle de Cierre", `
         <div style="text-align:center;">
              <div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
                 <p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p>
                 <hr style="border:1px solid #333; margin:15px 0;">
-                <p class="expense" style="font-weight:bold;">Egresos Reales: ₡${formatVisual(e, 2)}</p>
-                <p class="profit" style="font-weight:bold;">Ingresos Reales: ₡${formatVisual(i, 2)}</p>
-                <h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance: ₡${formatVisual(ganancia, 2)}</h3>
-                <p style="font-size:0.7rem; color:#888; margin-top: 10px; text-align:center;">* Los ajustes de capital han sido excluidos.</p>
+                <p class="expense" style="font-weight:bold;">Egresos: ₡${formatVisual(e, 2)}</p>
+                <p class="profit" style="font-weight:bold;">Ingresos: ₡${formatVisual(i, 2)}</p>
+                <h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Total Filtro: ₡${formatVisual(ganancia, 2)}</h3>
+                ${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}
             </div>
-            <button class="btn btn-in" style="margin-top:15px;" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e})">HACER CIERRE</button>
+            <button class="btn btn-in" style="margin-top:15px;" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button>
         </div>
     `); 
 }
 
-function saveHistoricalCierre(f, t, total, ing, egr) {
-    const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
-    showConfirm(`¿Guardar este reporte como un cierre histórico del periodo?`, () => {
+function saveHistoricalCierre(f, t, total, ing, egr, kw = "") {
+    const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` [Filtro: ${kw}]` : "");
+    showConfirm(`¿Guardar este reporte como un cierre histórico?`, () => {
         cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota });
         localStorage.setItem('copo_cierres', JSON.stringify(cierres));
-        showMsg("Cierre guardado con éxito.");
+        showMsg("Cierre guardado.");
         closeModal('history-modal');
     });
 }
@@ -805,21 +823,9 @@ function saveOldMove(apply) {
     const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value; 
     const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; 
     const affectProfit = document.getElementById('old-affect-profit').checked;
-
     if(!d || !a || !s) return showMsg("Faltan datos"); 
-    
     const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
-
-    movements.unshift({ 
-        id: Date.now(), 
-        type: t, 
-        amount: a, 
-        desc: s + (affectProfit ? " (Post-Cierre)" : ""), 
-        method: m, 
-        date: finalDate, 
-        historical: !apply 
-    }); 
-    
+    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s + (affectProfit ? " (Post-Cierre)" : ""), method: m, date: finalDate, historical: !apply }); 
     movements.sort((x,y) => new Date(y.date) - new Date(x.date)); 
     localStorage.setItem('copo_data', JSON.stringify(movements)); 
     updateUI(); closeModal('history-modal'); 
