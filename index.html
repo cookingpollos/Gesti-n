@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total</title>
+<title>Gestión Total 5.6</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -32,12 +32,13 @@ header { border-bottom: 2px solid #0026ff; padding-bottom: 10px; margin-bottom: 
 .card h3 { margin: 0; font-size: 0.7rem; color: #888; text-transform: uppercase; }
 .card p { margin: 8px 0 0; font-size: 1.1rem; font-weight: bold; }
 
-.profit { color: #25D366; } .expense { color: #ff3b3b; } .adj-color { color: #0026ff; } .bank-color { color: #25D366; } .cash-color { color: #ff9900; }
+.profit { color: #25D366; } .expense { color: #ff3b3b; } .adj-color { color: #0026ff; } .bank-color { color: #0026ff; } .cash-color { color: #25D366; }
 .balance { grid-column: span 2; border: 1px solid #0026ff; background: rgba(0, 38, 255, 0.05); }
 .profit-card { grid-column: span 2; border: 1px solid #25D366; background: rgba(37, 211, 102, 0.05); }
 
 .form-box { background: #1a1a1a; padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 1px solid #333; }
 input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid #333; background: #0b0b0b; color: white; box-sizing: border-box; outline: none; }
+input:disabled { background: #222; color: #666; cursor: not-allowed; border-color: #444; }
 
 .btn { width: 100%; padding: 16px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; color: white; font-size: 0.9rem; margin-bottom: 10px; transition: 0.3s; }
 .btn-in { background: #25D366; } .btn-out { background: #ff3b3b; } .btn-adj { background: #0026ff; }
@@ -52,7 +53,7 @@ table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
 th { padding: 10px; text-align: left; color: #888; border-bottom: 1px solid #333; white-space: nowrap; }
 td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 
-.row-cap-base { color: #ff9900 !important; font-weight: bold; background: rgba(255, 153, 0, 0.05); }
+.row-cap-base { color: #ff9900 !important; font-weight: bold; background: rgba(255, 153, 0, 0.1); }
 
 .img-preview-mini { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 1px solid #333; }
 .btn-add-img { color: #0026ff; font-size: 1.2rem; cursor: pointer; background: none; border: none; }
@@ -88,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 4.9</div>
+    <div class="version-tag">VERSIÓN 5.6</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -166,7 +167,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <input type="text" id="desc" placeholder="Detalle...">
             <button class="btn btn-in help-trigger" onclick="openMethodModal('IN')" data-title="Registro Ingreso" data-help="Suma dinero a tus cuentas y lo cuenta como ganancia neta.">REGISTRAR INGRESO</button>
             <button class="btn btn-out help-trigger" onclick="openMethodModal('OUT')" data-title="Registro Egreso" data-help="Resta dinero de tus cuentas y se descuenta de la ganancia neta.">REGISTRAR EGRESO</button>
-            <button class="btn btn-adj help-trigger" onclick="openAdjModal()" data-title="Ajuste Capital" data-help="Mueve el saldo de banco o efectivo sin afectar la ganancia neta. Ideal para corregir errores de saldo.">AJUSTE DE CAPITAL</button>
+            <button class="btn btn-adj help-trigger" onclick="openAdjModal()" data-title="Uso Externo / Inyección" data-help="Mueve el saldo de banco o efectivo sin afectar la ganancia neta. Ideal para gastos personales, imprevistos o inyecciones fuera del negocio.">USO EXTERNO / INYECCIÓN</button>
         </div>
 
         <div style="margin-bottom:15px; background:#1a1a1a; padding:10px; border-radius:10px;">
@@ -214,7 +215,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 4.9</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.6</div>
 </div>
 
 <div id="help-card">
@@ -227,17 +228,23 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="imgModal" class="modal" style="z-index: 12000;">
     <div class="modal-content-wrapper" style="max-width: 95vw; padding: 5px; position: relative;">
-        <span class="close-x" onclick="closeModal('imgModal')">×</span>
-        <button id="btn-del-photo" onclick="deleteCurrentPhoto()" style="position: absolute; top: 10px; left: 15px; background: rgba(255,59,59,0.8); border: none; color: white; border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 1.2rem; display: none; z-index: 101;">
-            <i class="fas fa-trash"></i>
-        </button>
+        <span class="close-x" onclick="closeModal('imgZoom')">×</span>
         <img id="imgZoom" style="width:100%; border-radius:10px; display: block;">
     </div>
 </div>
 
-<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
+<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
 
-<div id="adj-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeAdjModal()">×</span><h3 style="color:white;">Ajuste Capital</h3><button class="btn btn-in" onclick="executeEntry('EFECTIVO', 'ADJ_IN')">+ Efectivo</button><button class="btn btn-in" onclick="executeEntry('BANCO', 'ADJ_IN')">+ Banco</button><hr style="border:1px solid #333;"><button class="btn btn-out" onclick="executeEntry('EFECTIVO', 'ADJ_OUT')">- Efectivo</button><button class="btn btn-out" onclick="executeEntry('BANCO', 'ADJ_OUT')">- Banco</button><hr style="border:1px solid #333;"><p style="color:#ff9900; font-size:0.65rem; margin-bottom:12px; font-weight:bold; line-height:1.2;">⚠️ ESTE BOTÓN SE USA ÚNICAMENTE PARA MARCAR LA BASE INICIAL DEL NEGOCIO (UNA VEZ EN LA VIDA).</p><button class="btn btn-cap" onclick="executeEntry('EFECTIVO', 'CAP_BASE')">BOTÓN PARA INICIAR: EFECTIVO</button><button class="btn btn-cap" onclick="executeEntry('BANCO', 'CAP_BASE')">BOTÓN PARA INICIAR: BANCO</button></div></div>
+<div id="adj-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeAdjModal()">×</span><h3 style="color:white;">Uso Externo / Inyección</h3>
+<button class="btn btn-in" onclick="executeEntry('EFECTIVO', 'ADJ_IN')">+ Inyección a Efectivo</button>
+<button class="btn btn-in" onclick="executeEntry('BANCO', 'ADJ_IN')">+ Inyección a Banco</button>
+<hr style="border:1px solid #333;">
+<button class="btn btn-out" onclick="executeEntry('EFECTIVO', 'ADJ_OUT')">- Uso Externo de Efectivo</button>
+<button class="btn btn-out" onclick="executeEntry('BANCO', 'ADJ_OUT')">- Uso Externo de Banco</button>
+<hr style="border:1px solid #333;">
+<p style="color:#ff9900; font-size:0.65rem; margin-bottom:12px; font-weight:bold; line-height:1.2;">⚠️ SINCRONIZAR SALDO: Fuerza el monto en el cuadro ignorando errores del pasado.</p>
+<button class="btn btn-cap" onclick="executeEntry('EFECTIVO', 'CAP_BASE')">FIJAR SALDO REAL: EFECTIVO</button>
+<button class="btn btn-cap" onclick="executeEntry('BANCO', 'CAP_BASE')">FIJAR SALDO REAL: BANCO</button></div></div>
 
 <div id="history-modal" class="modal" style="z-index: 9999;"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('history-modal')">×</span><h3 id="modal-title" style="color:white; margin-bottom:15px;"></h3><div id="modal-content"></div></div></div>
 <div id="custom-dialog" class="modal"><div class="modal-content-wrapper" style="text-align:center;"><h3 id="dialog-title">Aviso</h3><div id="dialog-msg" style="color:#ccc; margin-bottom: 20px;"></div><div id="dialog-buttons" style="display:flex; gap:10px; margin-top:20px;"></div></div></div>
@@ -378,22 +385,51 @@ function updateUI() {
     const body = document.getElementById('history-body'); body.innerHTML = "";
     let tin = 0, tout = 0, mBank = 0, mCash = 0;
     
+    movements.sort((x, y) => new Date(x.date) - new Date(y.date));
+
+    let lastCapEfectivo = null;
+    let lastCapBanco = null;
+    
     movements.forEach(m => {
-        let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE') ? m.amount : -m.amount;
-        if (!m.historical) { if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; }
-        
+        if(m.type === 'CAP_BASE') {
+            if(m.method === 'EFECTIVO') lastCapEfectivo = m;
+            else lastCapBanco = m;
+        }
+    });
+
+    mCash = lastCapEfectivo ? lastCapEfectivo.amount : 0;
+    mBank = lastCapBanco ? lastCapBanco.amount : 0;
+
+    movements.forEach(m => {
         if (m.date > lastResetDate && !m.historical) { 
             if (m.type === 'IN') tin += m.amount; 
             else if(m.type === 'OUT') tout += m.amount; 
         }
 
+        let isAfterCap = false;
+        if(m.method === 'EFECTIVO' && lastCapEfectivo && m.date > lastCapEfectivo.date) isAfterCap = true;
+        if(m.method !== 'EFECTIVO' && lastCapBanco && m.date > lastCapBanco.date) isAfterCap = true;
+        
+        if((!lastCapEfectivo && m.method === 'EFECTIVO') || (!lastCapBanco && m.method !== 'EFECTIVO') || isAfterCap) {
+            if(m.type !== 'CAP_BASE') {
+                let effect = (m.type === 'IN' || m.type === 'ADJ_IN') ? m.amount : -m.amount;
+                if (!m.historical) { 
+                    if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; 
+                }
+            }
+        }
+    });
+
+    const displayMovements = [...movements].reverse();
+    displayMovements.forEach(m => {
         let isCap = m.type === 'CAP_BASE';
+        let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE') ? m.amount : -m.amount;
         let colorClass = isCap ? 'cash-color' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit'));
         const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
         
         body.innerHTML += `<tr class="${isCap ? 'row-cap-base' : ''}">
             <td style="white-space:nowrap">${getFormatedDate(m.date)}</td>
-            <td>${m.desc}<br><small>${m.method}${isCap ? ' [INICIO SISTEMA]' : ''}</small></td>
+            <td>${m.desc}<br><small>${m.method}${isCap ? ' [SALDO FIJADO]' : ''}</small></td>
             <td style="text-align:center">${imgBtn}</td>
             <td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td>
             <td style="text-align:right; white-space:nowrap;">
@@ -402,6 +438,7 @@ function updateUI() {
             </td>
         </tr>`;
     });
+
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
     document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash, 2);
     document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash, 2);
@@ -521,22 +558,8 @@ function openModal(t, c) { document.getElementById('modal-title').innerText = t;
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function zoomImage(s, id = null, staffIdx = null) { 
-    document.getElementById('imgZoom').src = s; const delBtn = document.getElementById('btn-del-photo');
-    if(id) { activeMovementId = id; activeStaffIndex = staffIdx; delBtn.style.display = 'block'; } else { delBtn.style.display = 'none'; }
+    document.getElementById('imgZoom').src = s;
     document.getElementById('imgModal').style.display = 'flex'; 
-}
-
-function deleteCurrentPhoto() {
-    showConfirm("¿Borrar esta imagen?", () => {
-        if (activeStaffIndex !== null) {
-            const shiftIdx = staff[activeStaffIndex].shifts.findIndex(sh => sh.id === activeMovementId);
-            if (shiftIdx !== -1) { staff[activeStaffIndex].shifts[shiftIdx].img = ""; saveStaff(); closeModal('imgModal'); closeModal('history-modal'); openStaffHistory(activeStaffIndex); }
-        } else if (activeMovementId !== null) {
-            const mIdx = movements.findIndex(m => m.id === activeMovementId);
-            if (mIdx !== -1) { movements[mIdx].img = ""; localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('imgModal'); }
-        }
-        activeMovementId = null; activeStaffIndex = null;
-    });
 }
 
 function showMsg(msg) { document.getElementById('dialog-title').innerText = "Aviso"; document.getElementById('dialog-msg').innerText = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" onclick="closeDialog()">OK</button>`; document.getElementById('custom-dialog').style.display = 'flex'; }
@@ -555,7 +578,7 @@ function closeAdjModal() { document.getElementById('adj-modal').style.display = 
 
 function executeEntry(m, ot = null) { 
     const t = ot || pendingType; 
-    const dsc = document.getElementById('desc').value || (t === 'CAP_BASE' ? 'Capital Base' : 'S/D');
+    const dsc = document.getElementById('desc').value || (t === 'CAP_BASE' ? 'Saldo Real Fijado' : 'S/D');
     movements.unshift({ id: Date.now(), type: t, amount: cleanAmount(document.getElementById('amount').value), desc: dsc, method: m, date: new Date().toISOString(), img: "" }); 
     localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
@@ -564,44 +587,100 @@ function deleteMovement(id) { showConfirm("¿Eliminar?", () => { movements = mov
 
 function editMovement(id) {
     const m = movements.find(x => x.id === id); if(!m) return;
-    // CIRUGÍA: Convertir fecha ISO para el input datetime-local (necesita formato YYYY-MM-DDTHH:MM)
     const d = new Date(m.date);
-    const offset = d.getTimezoneOffset() * 60000;
-    const localISO = new Date(d.getTime() - offset).toISOString().slice(0, 16);
+    const localISO = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
-    const html = `
+    const isAdj = m.type.startsWith('ADJ_') || m.type === 'CAP_BASE';
+    const isMuro = m.type === 'CAP_BASE';
+
+    let html = `
         <div class="form-box" style="background:transparent; border:none; padding:0;">
-            <label class="input-label">Monto Actual: ₡${formatVisual(m.amount)}</label>
+            <label class="input-label">Monto</label>
             <input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal">
             <label class="input-label">Detalle</label>
-            <input type="text" id="edit-dsc" value="${m.desc}">
+            <input type="text" id="edit-dsc" value="${m.desc}">`;
+
+    if (isMuro) {
+        // Formulario ultracompacto para muros: solo monto, detalle y envío oculto de datos estáticos
+        html += `
+            <input type="hidden" id="edit-date" value="${localISO}">
+            <input type="hidden" id="temp-method" value="${m.method}">
+            <input type="hidden" id="temp-dir" value="IN">
+            <input type="hidden" id="is-adj-orig" value="true">
+            <input type="hidden" id="orig-type" value="CAP_BASE">`;
+    } else {
+        // Formulario completo para movimientos operativos y uso externo
+        html += `
             <label class="input-label">Fecha y Hora</label>
             <input type="datetime-local" id="edit-date" value="${localISO}">
+            
+            <label class="input-label">Método</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                <button class="btn ${m.method === 'EFECTIVO' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='EFECTIVO'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💵 EFECTIVO</button>
+                <button class="btn ${m.method === 'TARJETA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TARJETA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💳 TARJETA</button>
+                <button class="btn ${m.method === 'SIMPE' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='SIMPE'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">📲 SIMPE</button>
+                <button class="btn ${m.method === 'TRANSFERENCIA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TRANSFERENCIA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">🏦 TRANSF.</button>
+            </div>
+            <input type="hidden" id="temp-method" value="${m.method}">
+            
+            <label class="input-label">Tipo de Movimiento</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                <button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button>
+                <button class="btn ${m.type === 'OUT' || m.type === 'ADJ_OUT' ? 'btn-out' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='OUT'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📤 EGRESO / SALIDA</button>
+            </div>
+            <input type="hidden" id="temp-dir" value="${m.type.includes('IN') ? 'IN' : 'OUT'}">
+            <input type="hidden" id="is-adj-orig" value="${isAdj ? 'true' : 'false'}">
+            <input type="hidden" id="orig-type" value="${m.type}">`;
+    }
+
+    html += `
             <button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button>
         </div>`;
-    openModal("Editar Movimiento", html);
+    openModal("Editar Registro", html);
+}
+
+function updateEditMethodUI(btn) {
+    const container = btn.parentElement;
+    container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in'); b.classList.add('btn-adj'); });
+    btn.classList.remove('btn-adj'); btn.classList.add('btn-in');
+}
+
+function updateEditTypeUI(btn) {
+    const container = btn.parentElement;
+    container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in', 'btn-out'); b.classList.add('btn-adj'); });
+    if(btn.innerText.includes("INGRESO")) btn.classList.add('btn-in'); else btn.classList.add('btn-out');
 }
 
 function saveEditMovement(id) {
-    const newAmt = cleanAmount(document.getElementById('edit-amt').value); 
-    const nDsc = document.getElementById('edit-dsc').value;
-    const nDate = document.getElementById('edit-date').value;
-    
-    if(!nDate) return showMsg("La fecha no puede estar vacía.");
-
     const mIdx = movements.findIndex(x => x.id === id);
-    if(mIdx !== -1) { 
-        movements[mIdx].amount = newAmt; 
-        movements[mIdx].desc = nDsc; 
-        movements[mIdx].date = new Date(nDate).toISOString();
-        
-        // Re-ordenar por fecha para mantener la lógica de saldos
-        movements.sort((x, y) => new Date(y.date) - new Date(x.date));
+    if(mIdx !== -1) {
+        const newAmt = cleanAmount(document.getElementById('edit-amt').value);
+        const newDsc = document.getElementById('edit-dsc').value;
+        const newMethod = document.getElementById('temp-method').value;
+        const newDir = document.getElementById('temp-dir').value;
+        const isAdjOrig = document.getElementById('is-adj-orig').value === 'true';
+        const origType = document.getElementById('orig-type').value;
+
+        let newType = newDir;
+        if (origType === 'CAP_BASE') {
+            newType = 'CAP_BASE';
+        } else if (isAdjOrig) {
+            newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT';
+        }
+
+        movements[mIdx].amount = newAmt;
+        movements[mIdx].desc = newDsc;
+        movements[mIdx].method = newMethod;
+        movements[mIdx].type = newType;
+
+        if (origType !== 'CAP_BASE') {
+            movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString();
+        }
         
         localStorage.setItem('copo_data', JSON.stringify(movements)); 
         updateUI(); 
         closeModal('history-modal'); 
-        showMsg("Cambios aplicados correctamente."); 
+        showMsg("Cambios aplicados y saldos sincronizados."); 
     }
 }
 
@@ -623,7 +702,7 @@ function confirmFullReset() {
     const adv = `<div class="warning-box-full"><i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px; color:#ff3b3b;"></i><br><b style="font-size: 1.2rem;">¡ATENCIÓN!</b><br><br>Esta acción borrará permanentemente todo.<br><br><b>¿Realmente desea eliminar TODO el sistema?</b></div>`;
     showConfirm(adv, () => {
         const pinHtml = `<div style="text-align:center;"><p style="color:#ff3b3b; font-weight:bold;">Ingrese su PIN:</p><input type="password" id="reset-pin-confirm" class="pin-input" style="width:150px; margin: 15px auto;" maxlength="4" inputmode="numeric" placeholder="****"><button class="btn btn-out" onclick="executeFinalReset()">BORRAR DEFINITIVAMENTE</button></div>`;
-        openModal("Seguridad Adicional", pinHtml);
+        openModal("Security adicional", pinHtml);
     });
 }
 
@@ -633,6 +712,9 @@ async function executeFinalReset() {
 }
 
 function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
+
+// REPARACIÓN INLINE ADICIONAL: Cierre de imagen corregido en el modal general
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function openCierreHistory() { 
     let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th style="text-align:center">Detalle</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`; cierres.forEach(c => { h += `<tr><td>${getFormatedDate(c.date)}</td><td style="text-align:center"><button class="btn-ver-cierre" onclick="verDetalleCierre(${c.id})">VER</button></td><td class="profit" style="text-align:right">₡${formatVisual(c.totalNeto)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`; }); 
@@ -692,7 +774,7 @@ function saveOldMove(apply) {
     if(!d || !a || !s) return showMsg("Faltan datos"); 
     const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
     movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: finalDate, historical: !apply }); 
-    movements.sort((x, y) => new Date(y.date) - new Date(x.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
+    movements.sort((x, y) => new Date(x.date) - new Date(y.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
 }
 </script>
 </body>
