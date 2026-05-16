@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 5.10</title>
+<title>Gestión Total 6.0</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -89,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 5.10</div>
+    <div class="version-tag">VERSIÓN 6.0</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -218,7 +218,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.10</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.0</div>
 </div>
 
 <div id="help-card">
@@ -259,7 +259,6 @@ let movements = JSON.parse(localStorage.getItem('copo_data')) || [];
 let staff = JSON.parse(localStorage.getItem('copo_staff')) || [];
 let cierres = JSON.parse(localStorage.getItem('copo_cierres')) || [];
 let trashMovements = JSON.parse(localStorage.getItem('copo_trash')) || [];
-// CIRUGÍA: Nueva variable para retener la inyección de ganancias virtuales calculadas por la lupa
 let virtualProfitBase = parseFloat(localStorage.getItem('copo_virtual_profit')) || 0;
 let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
@@ -454,27 +453,50 @@ function updateUI() {
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
     document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash, 2);
     document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash, 2);
-    // CIRUGÍA: Suma la base virtual acumulada al rendimiento del cuadro en tiempo real
     document.getElementById('net-profit').innerText = "₡" + formatVisual((tin - tout) + virtualProfitBase);
 }
 
-function triggerFileSelect(id, staffIdx = null) { activeMovementId = id; activeStaffIndex = staffIdx; document.getElementById('table-file-input').click(); }
+// CIRUGÍA: Función de disparo directa e inequívoca para navegadores web móviles seguros
+function triggerFileSelect(id, staffIdx = null) { 
+    activeMovementId = id; 
+    activeStaffIndex = staffIdx; 
+    const fileInput = document.getElementById('table-file-input');
+    fileInput.value = ""; // Limpieza de caché del input obligatorio para forzar el onchange nativo
+    fileInput.click(); 
+}
 
+// CIRUGÍA: Reescritura del procesador con aislamiento de variables para evitar que GitHub purgue los punteros activos
 function processTableFile(input) {
     const file = input.files[0];
-    if (file && activeMovementId) {
+    if (file && activeMovementId !== null) {
+        // Almacenamos localmente las referencias antes de entrar al hilo asíncrono del FileReader
+        const targetMoveId = activeMovementId;
+        const targetStaffIdx = activeStaffIndex;
+        
         compressImage(file, (dataUrl) => {
-            if (activeStaffIndex !== null) {
-                const sIdx = activeStaffIndex;
-                const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === activeMovementId);
-                if (shiftIdx !== -1) { staff[sIdx].shifts[shiftIdx].img = dataUrl; saveStaff(); closeModal('history-modal'); openStaffHistory(sIdx); }
+            if (targetStaffIdx !== null) {
+                const sIdx = targetStaffIdx;
+                const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === targetMoveId);
+                if (shiftIdx !== -1) { 
+                    staff[sIdx].shifts[shiftIdx].img = dataUrl; 
+                    saveStaff(); 
+                    closeModal('history-modal'); 
+                    openStaffHistory(sIdx); 
+                }
             } else {
-                const mIdx = movements.findIndex(m => m.id === activeMovementId);
-                if (mIdx !== -1) { movements[mIdx].img = dataUrl; localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }
+                const mIdx = movements.findIndex(m => m.id === targetMoveId);
+                if (mIdx !== -1) { 
+                    movements[mIdx].img = dataUrl; 
+                    localStorage.setItem('copo_data', JSON.stringify(movements)); 
+                    updateUI(); 
+                }
             }
-            input.value = ""; activeMovementId = null; activeStaffIndex = null;
         });
-    } else { input.value = ""; }
+    }
+    // CIRUGÍA: Limpieza inmediata del estado global posterior a la captura segura del evento
+    activeMovementId = null; 
+    activeStaffIndex = null;
+    input.value = ""; 
 }
 
 function filtrarMovimientos() {
@@ -831,7 +853,6 @@ function verDetalleCierre(id) {
 
 function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); openCierreHistory(); }); }
 
-// CIRUGÍA: Cuando reseteas las ganancias con la flecha naranja, también se limpia la base virtual inyectada
 function resetPeriodProfit() { 
     showConfirm("¿Deseas reiniciar las ganancias?", () => { 
         lastResetDate = new Date().toISOString(); 
@@ -866,14 +887,11 @@ function searchInPeriod() {
     });
     tableHtml += `</tbody></table></div>`;
     
-    // CIRUGÍA: El botón verde ahora invoca el inyector virtual puro pasando directamente la ganancia neta exacta calculada
     openModal("Detalle de Cierre", `<div style="text-align:center;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p><hr style="border:1px solid #333; margin:15px 0;"><p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p><p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p><h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}</div><button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit(${ganancia}, '${f}', '${t}')">SUMAR GANANCIA AL CUADRO PRINCIPAL</button><button class="btn btn-adj" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button></div>`); 
 }
 
-// CIRUGÍA: Lógica de inyección pura corregida para evitar el escaneo doble del pasado físico
 function injectPeriodToDashboardProfit(amountToInject, fromDate, toDate) {
     showConfirm("¿Deseas acumular la ganancia neta exacta de ₡" + formatVisual(amountToInject, 2) + " obtenida desde el " + formatDateSlash(fromDate) + " al cuadro principal?", () => {
-        // En lugar de mover la fecha, sumamos directamente al acumulador virtual aislado
         virtualProfitBase += amountToInject;
         localStorage.setItem('copo_virtual_profit', virtualProfitBase);
         updateUI();
