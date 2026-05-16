@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 5.8</title>
+<title>Gestión Total 5.9</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -46,7 +46,7 @@ input:disabled { background: #222; color: #666; cursor: not-allowed; border-colo
 .btn-aguinaldo { background: #ff9900; }
 .btn-cap { background: #ff9900; } 
 
-.btn-danger-clear { background: #331111; color: #ff3b3b; width: 100%; padding: 18px; border-radius: 10px; cursor: pointer; border: 1px solid #442222; font-weight: bold; font-size: 0.8rem; margin-top: 50px; text-transform: uppercase; transition: 0.3s; }
+.btn-danger-clear { background: #331111; color: #ff3b3b; width: 100%; padding: 18px; border-radius: 10px; cursor: pointer; border: 1px solid #442222; font-weight: bold; font-size: 0.8rem; margin-top: 20px; text-transform: uppercase; transition: 0.3s; }
 
 .history-wrapper { background: #1a1a1a; border-radius: 12px; border: 1px solid #333; max-height: 350px; overflow-y: auto; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -89,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 5.8</div>
+    <div class="version-tag">VERSIÓN 5.9</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -206,16 +206,19 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn btn-in" onclick="saveBusinessIdentity()">GUARDAR CAMBIOS</button>
         </div>
         <div class="form-box">
-            <h4 style="margin-top:0; color:#ff9900;">Seguridad</h4>
+            <h4 style="margin-top:0; color:#ff9900;">Seguridad y Herramientas</h4>
             <label class="input-label">PIN Actual</label>
             <input type="password" id="current-pin-input" placeholder="Ingrese PIN actual" maxlength="4" inputmode="numeric">
             <label class="input-label">Nuevo PIN</label>
             <input type="password" id="new-pin-input" placeholder="Ingrese nuevo PIN" maxlength="4" inputmode="numeric">
             <button class="btn btn-adj" onclick="changePin()">CAMBIAR PIN</button>
+            
+            <button class="btn btn-adj help-trigger" style="margin-top: 30px; background: #222; border: 1px solid #444;" onclick="openTrashModal()" data-title="Papelera de Reciclaje" data-help="Revisa los movimientos eliminados de la contabilidad. Puedes restaurarlos o borrarlos permanentemente."><i class="fas fa-trash-alt" style="margin-right:8px; color:#ff9900;"></i> VER PAPELERA DE RECICLAJE</button>
+            
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.8</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.9</div>
 </div>
 
 <div id="help-card">
@@ -255,10 +258,11 @@ let secure_pin_hash = localStorage.getItem('copo_pin_hash') || "03ac674216f3e15c
 let movements = JSON.parse(localStorage.getItem('copo_data')) || [];
 let staff = JSON.parse(localStorage.getItem('copo_staff')) || [];
 let cierres = JSON.parse(localStorage.getItem('copo_cierres')) || [];
+let trashMovements = JSON.parse(localStorage.getItem('copo_trash')) || []; // CIRUGÍA: Almacenamiento seguro de la papelera
 let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
 let pendingType = "", activeMovementId = null, activeStaffIndex = null;
-let currentZoomedId = null, currentZoomedStaffIdx = null; // Guardas de imagen activa
+let currentZoomedId = null, currentZoomedStaffIdx = null;
 
 window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); initManual(); };
 
@@ -563,7 +567,6 @@ function addAguinaldoToStaff(i, monto, f, t) {
 function openModal(t, c) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerHTML = c; document.getElementById('history-modal').style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-// REPARADO: Se mapean los identificadores globales para saber qué foto está activa al ampliarla
 function zoomImage(s, id = null, staffIdx = null) { 
     currentZoomedId = id;
     currentZoomedStaffIdx = staffIdx;
@@ -571,7 +574,6 @@ function zoomImage(s, id = null, staffIdx = null) {
     document.getElementById('imgModal').style.display = 'flex'; 
 }
 
-// NUEVA FUNCIÓN: Ejecuta el borrado físico de la foto ampliada desde el almacenamiento interno
 function deleteCurrentZoomedImage() {
     if (!currentZoomedId) return;
     showConfirm("¿Deseas eliminar la foto de este registro permanentemente?", () => {
@@ -603,6 +605,57 @@ function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').i
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
 
+// CIRUGÍA: Interfaz visual y lógica interactiva interna de la Papelera de Reciclaje
+function openTrashModal() {
+    if (trashMovements.length === 0) return showMsg("La papelera de reciclaje está completamente vacía.");
+    
+    let html = `<div class="history-wrapper" style="max-height: 350px;"><table>
+        <thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:right">Monto</th><th style="text-align:right">Acciones</th></tr></thead><tbody>`;
+        
+    trashMovements.forEach(m => {
+        let isCap = m.type === 'CAP_BASE';
+        let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE') ? m.amount : -m.amount;
+        let colorClass = isCap ? 'cash-color' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit'));
+        
+        html += `<tr>
+            <td style="white-space:nowrap; font-size:0.75rem;">${formatDateSlash(m.date.split('T')[0])}</td>
+            <td style="font-size:0.75rem;">${m.desc}<br><small>${m.method}</small></td>
+            <td class="${colorClass}" style="text-align:right; font-weight:bold; font-size:0.75rem;">===₡${formatVisual(effect)}</td>
+            <td style="text-align:right; white-space:nowrap;">
+                <button class="btn-icon" style="color:#25D366; margin-right:5px;" onclick="restoreMovement(${m.id})"><i class="fas fa-undo-alt"></i></button>
+                <button class="btn-icon" style="color:#ff3b3b" onclick="permanentlyDeleteMovement(${m.id})"><i class="fas fa-times-circle"></i></button>
+            </td>
+        </tr>`;
+    });
+    
+    html += `</tbody></table></div>`;
+    openModal("Papelera de Reciclaje", html);
+}
+
+// CIRUGÍA: Devuelve el movimiento a la base de datos viva y recalcula la contabilidad al instante
+function restoreMovement(id) {
+    const idx = trashMovements.findIndex(m => m.id === id);
+    if (idx !== -1) {
+        const item = trashMovements.splice(idx, 1)[0];
+        movements.unshift(item);
+        localStorage.setItem('copo_data', JSON.stringify(movements));
+        localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
+        updateUI();
+        closeModal('history-modal');
+        showMsg("Movimiento restaurado en la línea de tiempo.");
+    }
+}
+
+// CIRUGÍA: Borra de forma destructiva y absoluta un elemento de la papelera
+function permanentlyDeleteMovement(id) {
+    showConfirm("¿Deseas eliminar permanentemente este registro? No se podrá recuperar jamás.", () => {
+        trashMovements = trashMovements.filter(m => m.id !== id);
+        localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
+        closeModal('history-modal');
+        showMsg("Registro destruido permanentemente.");
+    });
+}
+
 function formatCurrencyInput(input) { 
     let value = input.value.replace(/[^0-9,]/g, ""); 
     const parts = value.split(','); 
@@ -626,7 +679,19 @@ function executeEntry(m, ot = null) {
     localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
 
-function deleteMovement(id) { showConfirm("¿Eliminar?", () => { movements = movements.filter(m => m.id !== id); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }); }
+// CIRUGÍA: Intercepta la eliminación directa, moviendo el ítem a la papelera en lugar de destruirlo
+function deleteMovement(id) { 
+    showConfirm("¿Deseas enviar este movimiento a la papelera de reciclaje?", () => { 
+        const matchIdx = movements.findIndex(m => m.id === id);
+        if (matchIdx !== -1) {
+            const trashedItem = movements.splice(matchIdx, 1)[0];
+            trashMovements.unshift(trashedItem);
+            localStorage.setItem('copo_data', JSON.stringify(movements));
+            localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
+            updateUI();
+        }
+    }); 
+}
 
 function editMovement(id) {
     const m = movements.find(x => x.id === id); if(!m) return;
@@ -769,7 +834,6 @@ function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierr
 
 function resetPeriodProfit() { showConfirm("¿Deseas reiniciar las ganancias?", () => { lastResetDate = new Date().toISOString(); localStorage.setItem('copo_last_reset', lastResetDate); updateUI(); }); }
 
-// REPARADO: Se agrega dinámicamente un botón para poder inyectar la ganancia de la lupa en el contador principal de la app
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
     const kw = document.getElementById('c-keyword').value.toLowerCase().trim();
@@ -797,10 +861,8 @@ function searchInPeriod() {
     openModal("Detalle de Cierre", `<div style="text-align:center;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p><hr style="border:1px solid #333; margin:15px 0;"><p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p><p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p><h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}</div><button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit('${f}')">SUMAR GANANCIA AL CUADRO PRINCIPAL</button><button class="btn btn-adj" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button></div>`); 
 }
 
-// NUEVA FUNCIÓN: Altera de forma segura la fecha base de cálculo del Dashboard para forzarlo a contar desde el inicio del mes consultado
 function injectPeriodToDashboardProfit(fromDate) {
     showConfirm("¿Deseas que el cuadro superior empiece a contar la Ganancia Neta acumulada desde el " + formatDateSlash(fromDate) + "?", () => {
-        // Configuramos la fecha del reset al primer segundo de ese día consultado
         lastResetDate = new Date(fromDate + "T00:00:00").toISOString();
         localStorage.setItem('copo_last_reset', lastResetDate);
         updateUI();
