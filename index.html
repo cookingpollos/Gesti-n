@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 5.6</title>
+<title>Gestión Total 5.7</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -89,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 5.6</div>
+    <div class="version-tag">VERSIÓN 5.7</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -215,7 +215,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.6</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.7</div>
 </div>
 
 <div id="help-card">
@@ -228,7 +228,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="imgModal" class="modal" style="z-index: 12000;">
     <div class="modal-content-wrapper" style="max-width: 95vw; padding: 5px; position: relative;">
-        <span class="close-x" onclick="closeModal('imgZoom')">×</span>
+        <span class="close-x" onclick="closeModal('imgModal')">×</span>
         <img id="imgZoom" style="width:100%; border-radius:10px; display: block;">
     </div>
 </div>
@@ -376,7 +376,12 @@ function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Mat
 function formatVisual(num, decimals = 0) { 
     const privacy = document.getElementById('privacy-switch')?.checked;
     if (privacy) return "****";
-    return Number(num || 0).toLocaleString('es-CR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }); 
+    
+    // Forzado estricto: Puntos para miles y comas para decimales sin espacios intermedios
+    let fixed = Number(num || 0).toFixed(decimals);
+    let parts = fixed.split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return parts.length > 1 ? parts[0] + ',' + parts[1] : parts[0];
 }
 
 function cleanAmount(val) { return parseFloat(val.toString().replace(/\./g, "").replace(/,/g, ".")) || 0; }
@@ -566,7 +571,14 @@ function showMsg(msg) { document.getElementById('dialog-title').innerText = "Avi
 function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; }
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
-function formatCurrencyInput(input) { let value = input.value.replace(/[^0-9,]/g, ""); const parts = value.split(','); parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); input.value = parts.length > 1 ? parts[0] + ',' + parts[1].slice(0,2) : parts[0]; }
+
+function formatCurrencyInput(input) { 
+    let value = input.value.replace(/[^0-9,]/g, ""); 
+    const parts = value.split(','); 
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); 
+    input.value = parts.length > 1 ? parts[0] + ',' + parts[1].slice(0,2) : parts[0]; 
+}
+
 function saveStaff() { localStorage.setItem('copo_staff', JSON.stringify(staff)); }
 function toggleStaff(i) { document.querySelectorAll('.staff-bar')[i].classList.toggle('active'); }
 function toggleFeature(i, f) { staff[i][f] = !staff[i][f]; saveStaff(); }
@@ -601,7 +613,6 @@ function editMovement(id) {
             <input type="text" id="edit-dsc" value="${m.desc}">`;
 
     if (isMuro) {
-        // Formulario ultracompacto para muros: solo monto, detalle y envío oculto de datos estáticos
         html += `
             <input type="hidden" id="edit-date" value="${localISO}">
             <input type="hidden" id="temp-method" value="${m.method}">
@@ -609,7 +620,6 @@ function editMovement(id) {
             <input type="hidden" id="is-adj-orig" value="true">
             <input type="hidden" id="orig-type" value="CAP_BASE">`;
     } else {
-        // Formulario completo para movimientos operativos y uso externo
         html += `
             <label class="input-label">Fecha y Hora</label>
             <input type="datetime-local" id="edit-date" value="${localISO}">
@@ -713,7 +723,6 @@ async function executeFinalReset() {
 
 function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
 
-// REPARACIÓN INLINE ADICIONAL: Cierre de imagen corregido en el modal general
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 function openCierreHistory() { 
