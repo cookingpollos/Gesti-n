@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 5.9</title>
+<title>Gestión Total 5.10</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -89,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 5.9</div>
+    <div class="version-tag">VERSIÓN 5.10</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -218,7 +218,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.9</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 5.10</div>
 </div>
 
 <div id="help-card">
@@ -258,7 +258,9 @@ let secure_pin_hash = localStorage.getItem('copo_pin_hash') || "03ac674216f3e15c
 let movements = JSON.parse(localStorage.getItem('copo_data')) || [];
 let staff = JSON.parse(localStorage.getItem('copo_staff')) || [];
 let cierres = JSON.parse(localStorage.getItem('copo_cierres')) || [];
-let trashMovements = JSON.parse(localStorage.getItem('copo_trash')) || []; // CIRUGÍA: Almacenamiento seguro de la papelera
+let trashMovements = JSON.parse(localStorage.getItem('copo_trash')) || [];
+// CIRUGÍA: Nueva variable para retener la inyección de ganancias virtuales calculadas por la lupa
+let virtualProfitBase = parseFloat(localStorage.getItem('copo_virtual_profit')) || 0;
 let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
 let pendingType = "", activeMovementId = null, activeStaffIndex = null;
@@ -452,7 +454,8 @@ function updateUI() {
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
     document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash, 2);
     document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash, 2);
-    document.getElementById('net-profit').innerText = "₡" + formatVisual(tin - tout);
+    // CIRUGÍA: Suma la base virtual acumulada al rendimiento del cuadro en tiempo real
+    document.getElementById('net-profit').innerText = "₡" + formatVisual((tin - tout) + virtualProfitBase);
 }
 
 function triggerFileSelect(id, staffIdx = null) { activeMovementId = id; activeStaffIndex = staffIdx; document.getElementById('table-file-input').click(); }
@@ -605,7 +608,6 @@ function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').i
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
 
-// CIRUGÍA: Interfaz visual y lógica interactiva interna de la Papelera de Reciclaje
 function openTrashModal() {
     if (trashMovements.length === 0) return showMsg("La papelera de reciclaje está completamente vacía.");
     
@@ -632,7 +634,6 @@ function openTrashModal() {
     openModal("Papelera de Reciclaje", html);
 }
 
-// CIRUGÍA: Devuelve el movimiento a la base de datos viva y recalcula la contabilidad al instante
 function restoreMovement(id) {
     const idx = trashMovements.findIndex(m => m.id === id);
     if (idx !== -1) {
@@ -646,7 +647,6 @@ function restoreMovement(id) {
     }
 }
 
-// CIRUGÍA: Borra de forma destructiva y absoluta un elemento de la papelera
 function permanentlyDeleteMovement(id) {
     showConfirm("¿Deseas eliminar permanentemente este registro? No se podrá recuperar jamás.", () => {
         trashMovements = trashMovements.filter(m => m.id !== id);
@@ -679,7 +679,6 @@ function executeEntry(m, ot = null) {
     localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
 
-// CIRUGÍA: Intercepta la eliminación directa, moviendo el ítem a la papelera en lugar de destruirlo
 function deleteMovement(id) { 
     showConfirm("¿Deseas enviar este movimiento a la papelera de reciclaje?", () => { 
         const matchIdx = movements.findIndex(m => m.id === id);
@@ -832,7 +831,16 @@ function verDetalleCierre(id) {
 
 function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); openCierreHistory(); }); }
 
-function resetPeriodProfit() { showConfirm("¿Deseas reiniciar las ganancias?", () => { lastResetDate = new Date().toISOString(); localStorage.setItem('copo_last_reset', lastResetDate); updateUI(); }); }
+// CIRUGÍA: Cuando reseteas las ganancias con la flecha naranja, también se limpia la base virtual inyectada
+function resetPeriodProfit() { 
+    showConfirm("¿Deseas reiniciar las ganancias?", () => { 
+        lastResetDate = new Date().toISOString(); 
+        virtualProfitBase = 0;
+        localStorage.setItem('copo_last_reset', lastResetDate); 
+        localStorage.setItem('copo_virtual_profit', 0);
+        updateUI(); 
+    }); 
+}
 
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
@@ -858,16 +866,19 @@ function searchInPeriod() {
     });
     tableHtml += `</tbody></table></div>`;
     
-    openModal("Detalle de Cierre", `<div style="text-align:center;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p><hr style="border:1px solid #333; margin:15px 0;"><p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p><p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p><h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}</div><button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit('${f}')">SUMAR GANANCIA AL CUADRO PRINCIPAL</button><button class="btn btn-adj" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button></div>`); 
+    // CIRUGÍA: El botón verde ahora invoca el inyector virtual puro pasando directamente la ganancia neta exacta calculada
+    openModal("Detalle de Cierre", `<div style="text-align:center;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p><hr style="border:1px solid #333; margin:15px 0;"><p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p><p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p><h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}</div><button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit(${ganancia}, '${f}', '${t}')">SUMAR GANANCIA AL CUADRO PRINCIPAL</button><button class="btn btn-adj" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button></div>`); 
 }
 
-function injectPeriodToDashboardProfit(fromDate) {
-    showConfirm("¿Deseas que el cuadro superior empiece a contar la Ganancia Neta acumulada desde el " + formatDateSlash(fromDate) + "?", () => {
-        lastResetDate = new Date(fromDate + "T00:00:00").toISOString();
-        localStorage.setItem('copo_last_reset', lastResetDate);
+// CIRUGÍA: Lógica de inyección pura corregida para evitar el escaneo doble del pasado físico
+function injectPeriodToDashboardProfit(amountToInject, fromDate, toDate) {
+    showConfirm("¿Deseas acumular la ganancia neta exacta de ₡" + formatVisual(amountToInject, 2) + " obtenida desde el " + formatDateSlash(fromDate) + " al cuadro principal?", () => {
+        // En lugar de mover la fecha, sumamos directamente al acumulador virtual aislado
+        virtualProfitBase += amountToInject;
+        localStorage.setItem('copo_virtual_profit', virtualProfitBase);
         updateUI();
         closeModal('history-modal');
-        showMsg("Cuadro principal sincronizado con éxito.");
+        showMsg("Monto consolidado perfectamente en el cuadro superior.");
     });
 }
 
