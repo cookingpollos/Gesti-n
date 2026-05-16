@@ -20,6 +20,10 @@ header { border-bottom: 2px solid #0026ff; padding-bottom: 10px; margin-bottom: 
 .owner-text { font-size: 0.9rem; font-weight: bold; color: #888; border-left: 1px solid #333; padding-left: 15px; }
 .logo-login { max-height: 100px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto; cursor: pointer; }
 
+/* CIRUGÍA: Estilo barra privacidad */
+.privacy-bar { background: #1a1a1a; padding: 10px 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+.privacy-bar span { font-size: 0.8rem; font-weight: bold; color: #888; }
+
 .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
 .tab-btn { flex: 1; padding: 10px; background: #1a1a1a; border: 1px solid #333; color: white; cursor: pointer; border-radius: 8px; font-weight: bold; }
 .tab-btn.active { background: #0026ff; border-color: #0026ff; }
@@ -79,14 +83,14 @@ input:checked + .slider:before { transform: translateX(20px); }
 @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
 
 /* Estilo para la versión */
-.version-label { text-align: center; font-size: 0.7rem; color: #444; font-weight: bold; margin-top: 10px; margin-bottom: 20px; }
+.version-tag { text-align: center; font-size: 0.7rem; color: #444; font-weight: bold; margin-bottom: 15px; }
 </style>
 </head>
 <body id="main-body">
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-label">VERSIÓN 4.0</div>
+    <div class="version-tag">VERSIÓN 4.6</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -99,6 +103,14 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button onclick="logout()" style="background:none; border:none; color:#555; cursor:pointer;">Cerrar</button>
         </div>
     </header>
+
+    <div class="privacy-bar">
+        <span><i class="fas fa-user-shield" style="margin-right: 8px;"></i> OCULTAR MONTOS</span>
+        <label class="switch">
+            <input type="checkbox" id="privacy-switch" onchange="updateUI(); renderStaff();">
+            <span class="slider"></span>
+        </label>
+    </div>
 
     <div class="tabs">
         <button class="tab-btn active help-trigger" id="btn-tab-contabilidad" onclick="showTab('contabilidad')" data-title="Módulo Contabilidad" data-help="Pantalla principal para controlar el flujo de caja, ver saldos de banco/efectivo y ganancias netas.">CONTABILIDAD</button>
@@ -133,6 +145,15 @@ input:checked + .slider:before { transform: translateX(20px); }
                 <div style="display:block;">
                     <span style="font-size:0.6rem; color:#888; font-weight:bold; margin-left:5px;">PALABRA CLAVE (OPCIONAL)</span>
                     <input type="text" id="c-keyword" placeholder="Ej: Gasolina, Pollo..." style="margin-bottom:10px;">
+                    
+                    <div class="toggle-box" style="margin-bottom:12px; background:#000;">
+                        <span>INCLUIR AJUSTES DE CAPITAL</span>
+                        <label class="switch">
+                            <input type="checkbox" id="include-adj-report">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
                     <button class="btn btn-in" style="margin:0; width:100%; height:46px;" onclick="searchInPeriod()"><i class="fas fa-search" style="margin-right:8px;"></i> CONSULTAR PERIODO</button>
                 </div>
             </div>
@@ -144,19 +165,19 @@ input:checked + .slider:before { transform: translateX(20px); }
 
         <div class="form-box">
             <input type="text" id="amount" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
-            <input type="text" id="desc" placeholder="Motivo...">
+            <input type="text" id="desc" placeholder="Detalle...">
             <button class="btn btn-in help-trigger" onclick="openMethodModal('IN')" data-title="Registro Ingreso" data-help="Suma dinero a tus cuentas y lo cuenta como ganancia neta.">REGISTRAR INGRESO</button>
             <button class="btn btn-out help-trigger" onclick="openMethodModal('OUT')" data-title="Registro Egreso" data-help="Resta dinero de tus cuentas y se descuenta de la ganancia neta.">REGISTRAR EGRESO</button>
             <button class="btn btn-adj help-trigger" onclick="openAdjModal()" data-title="Ajuste Capital" data-help="Mueve el saldo de banco o efectivo sin afectar la ganancia neta. Ideal para corregir errores de saldo.">AJUSTE DE CAPITAL</button>
         </div>
 
         <div style="margin-bottom:15px; background:#1a1a1a; padding:10px; border-radius:10px;">
-            <input type="text" id="buscador" onkeyup="filtrarMovimientos()" placeholder="🔍 Buscar motivo o método..." style="margin:0; width:100%;">
+            <input type="text" id="buscador" onkeyup="filtrarMovimientos()" placeholder="🔍 Buscar detalle o método..." style="margin:0; width:100%;">
         </div>
 
         <div class="history-wrapper">
             <table>
-                <thead><tr><th>Fecha</th><th>Motivo</th><th style="text-align:center">Fact.</th><th style="text-align:right">Monto</th><th></th></tr></thead>
+                <thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:center">Fact.</th><th style="text-align:right">Monto</th><th></th></tr></thead>
                 <tbody id="history-body"></tbody>
             </table>
         </div>
@@ -195,7 +216,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-label">VERSIÓN 4.0</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 4.6</div>
 </div>
 
 <div id="help-card">
@@ -319,11 +340,11 @@ async function validatePin() {
 
 async function changePin() { 
     const currentPin = document.getElementById('current-pin-input').value;
-    const newPin = document.getElementById('new-pin-input').value;
-    if(currentPin.length !== 4 || newPin.length !== 4) return showMsg("Ambos PIN deben ser de 4 dígitos");
+    const nPin = document.getElementById('new-pin-input').value;
+    if(currentPin.length !== 4 || nPin.length !== 4) return showMsg("Ambos PIN deben ser de 4 dígitos");
     const hashedCurrent = await hashPin(currentPin);
     if(hashedCurrent !== secure_pin_hash) { return showMsg("El PIN actual es incorrecto"); }
-    secure_pin_hash = await hashPin(newPin); 
+    secure_pin_hash = await hashPin(nPin); 
     localStorage.setItem('copo_pin_hash', secure_pin_hash); 
     document.getElementById('current-pin-input').value = "";
     document.getElementById('new-pin-input').value = "";
@@ -354,6 +375,8 @@ function formatDateSlash(isoString) {
 function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Math.floor(totalMin/60)}h ${totalMin%60}m`; }
 
 function formatVisual(num, decimals = 0) { 
+    const privacy = document.getElementById('privacy-switch')?.checked;
+    if (privacy) return "****";
     return Number(num || 0).toLocaleString('es-CR', { 
         minimumFractionDigits: decimals, 
         maximumFractionDigits: decimals 
@@ -442,7 +465,7 @@ function renderStaff() {
             else if(sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned;
             else if(sh.type === 'PAYMENT_SUELDO') sueldoTotal += sh.earned;
         });
-        list.innerHTML += `<div class="staff-bar"><div class="staff-header-bar" onclick="toggleStaff(${i})"><b>${s.name}</b><div style="text-align:right"><span style="font-size:0.85rem">Sueldo: ₡${formatVisual(sueldoTotal)}</span>${aguinaldoTotal > 0 ? `<br><span style="font-size:0.75rem; color:#ff9900">Agui: ₡${formatVisual(aguinaldoTotal)}</span>` : ''}</div></div><div class="staff-content"><p style="font-size:0.8rem; color:#888;">Tarifa: ₡${formatVisual(s.rate)}/h</p><div class="toggle-box"><span>Pago Horas Extras (x1.5)</span><label class="switch"><input type="checkbox" ${s.useExtras ? 'checked' : ''} onchange="toggleFeature(${i}, 'useExtras')"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; margin-bottom:15px;"><button class="btn-icon" style="color:#ff9900" onclick="openAguinaldoCalc(${i})"><i class="fas fa-piggy-bank"></i></button><button class="btn-icon" style="color:#3498db" onclick="openStaffHistory(${i})"><i class="fas fa-history"></i></button><button class="btn-icon" style="color:#25D366" onclick="checkPeriodStaff(${i})"><i class="fas fa-search"></i></button><button class="btn-icon" style="color:#0026ff" onclick="updateStaffRate(${i})"><i class="fas fa-tag"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaff(${i})"><i class="fas fa-trash"></i></button></div><label class="input-label">Hora Entrada</label><input type="datetime-local" id="dt-in-${i}" style="margin-bottom:10px;"><label class="input-label">Hora Salida</label><input type="datetime-local" id="dt-out-${i}"><button class="btn btn-in" style="margin-top:10px;" onclick="addHours(${i})">ANOTAR TURNO</button><div style="background:#000; padding:15px; border-radius:10px; margin-top:10px;"><input type="text" id="adv-desc-${i}" placeholder="Motivo de adelanto..." style="margin-bottom:8px;"><input type="text" id="adv-amt-${i}" placeholder="₡ Monto Adelanto" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-advance" onclick="giveAdvance(${i})">REGISTRAR ADELANTO</button></div><button class="btn btn-pay" style="margin-top:10px;" onclick="resetDebt(${i})">PAGAR SUELDO</button>${aguinaldoTotal > 0 ? `<button class="btn btn-aguinaldo" onclick="payAguinaldoOnly(${i})">PAGAR AGUINALDO</button>` : ''}</div></div>`;
+        list.innerHTML += `<div class="staff-bar"><div class="staff-header-bar" onclick="toggleStaff(${i})"><b>${s.name}</b><div style="text-align:right"><span style="font-size:0.85rem">Sueldo: ₡${formatVisual(sueldoTotal)}</span>${aguinaldoTotal > 0 ? `<br><span style="font-size:0.75rem; color:#ff9900">Agui: ₡${formatVisual(aguinaldoTotal)}</span>` : ''}</div></div><div class="staff-content"><p style="font-size:0.8rem; color:#888;">Tarifa: ₡${formatVisual(s.rate)}/h</p><div class="toggle-box"><span>Pago Horas Extras (x1.5)</span><label class="switch"><input type="checkbox" ${s.useExtras ? 'checked' : ''} onchange="toggleFeature(${i}, 'useExtras')"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; margin-bottom:15px;"><button class="btn-icon" style="color:#ff9900" onclick="openAguinaldoCalc(${i})"><i class="fas fa-piggy-bank"></i></button><button class="btn-icon" style="color:#3498db" onclick="openStaffHistory(${i})"><i class="fas fa-history"></i></button><button class="btn-icon" style="color:#25D366" onclick="checkPeriodStaff(${i})"><i class="fas fa-search"></i></button><button class="btn-icon" style="color:#0026ff" onclick="updateStaffRate(${i})"><i class="fas fa-tag"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaff(${i})"><i class="fas fa-trash"></i></button></div><label class="input-label">Hora Entrada</label><input type="datetime-local" id="dt-in-${i}" style="margin-bottom:10px;"><label class="input-label">Hora Salida</label><input type="datetime-local" id="dt-out-${i}"><button class="btn btn-in" style="margin-top:10px;" onclick="addHours(${i})">ANOTAR TURNO</button><div style="background:#000; padding:15px; border-radius:10px; margin-top:10px;"><input type="text" id="adv-desc-${i}" placeholder="Detalle de adelanto..." style="margin-bottom:8px;"><input type="text" id="adv-amt-${i}" placeholder="₡ Monto Adelanto" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-advance" onclick="giveAdvance(${i})">REGISTRAR ADELANTO</button></div><button class="btn btn-pay" style="margin-top:10px;" onclick="resetDebt(${i})">PAGAR SUELDO</button>${aguinaldoTotal > 0 ? `<button class="btn btn-aguinaldo" onclick="payAguinaldoOnly(${i})">PAGAR AGUINALDO</button>` : ''}</div></div>`;
     });
 }
 
@@ -627,7 +650,7 @@ function editMovement(id) {
         <div class="form-box" style="background:transparent; border:none; padding:0;">
             <label class="input-label">Monto Actual: ₡${formatVisual(m.amount)}</label>
             <input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal">
-            <label class="input-label">Motivo</label>
+            <label class="input-label">Detalle</label>
             <input type="text" id="edit-dsc" value="${m.desc}">
             <button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button>
         </div>
@@ -637,11 +660,11 @@ function editMovement(id) {
 
 function saveEditMovement(id) {
     const newAmt = cleanAmount(document.getElementById('edit-amt').value);
-    const newDsc = document.getElementById('edit-dsc').value;
+    const nDsc = document.getElementById('edit-dsc').value;
     const mIdx = movements.findIndex(x => x.id === id);
     if(mIdx !== -1) {
         movements[mIdx].amount = newAmt;
-        movements[mIdx].desc = newDsc;
+        movements[mIdx].desc = nDsc;
         localStorage.setItem('copo_data', JSON.stringify(movements));
         updateUI();
         closeModal('history-modal');
@@ -757,6 +780,7 @@ function resetPeriodProfit() {
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
     const kw = document.getElementById('c-keyword').value.toLowerCase().trim();
+    const incAdj = document.getElementById('include-adj-report').checked;
     if(!f || !t) return showMsg("Faltan fechas"); 
     
     let i=0, e=0, matches = []; 
@@ -766,9 +790,13 @@ function searchInPeriod() {
         const inDate = m.date >= fT && m.date <= tT;
         const inKeyword = kw === "" || m.desc.toLowerCase().includes(kw) || m.method.toLowerCase().includes(kw);
         
-        if(inDate && inKeyword) { 
-            if(m.type === 'IN') i += m.amount; 
-            else if(m.type === 'OUT') e += m.amount;
+        // CIRUGÍA: Lógica para incluir ajustes si el switch está encendido
+        const isNormal = (m.type === 'IN' || m.type === 'OUT');
+        const isAdj = incAdj && (m.type === 'ADJ_IN' || m.type === 'ADJ_OUT');
+
+        if(inDate && inKeyword && (isNormal || isAdj)) { 
+            if(m.type === 'IN' || m.type === 'ADJ_IN') i += m.amount; 
+            else if(m.type === 'OUT' || m.type === 'ADJ_OUT') e += m.amount;
             matches.push(m);
         } 
     }); 
@@ -778,7 +806,7 @@ function searchInPeriod() {
     
     let tableHtml = `<div class="history-wrapper" style="margin-top:15px; max-height:200px;"><table><tbody>`;
     matches.forEach(m => {
-        let color = (m.type === 'OUT' ) ? 'expense' : 'profit';
+        let color = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
         tableHtml += `<tr><td style="font-size:0.7rem;">${formatDateSlash(m.date.split('T')[0])}</td><td style="font-size:0.7rem;">${m.desc}</td><td class="${color}" style="text-align:right; font-weight:bold; font-size:0.7rem;">₡${formatVisual(m.amount)}</td></tr>`;
     });
     tableHtml += `</tbody></table></div>`;
@@ -788,9 +816,9 @@ function searchInPeriod() {
              <div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
                 <p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p>
                 <hr style="border:1px solid #333; margin:15px 0;">
-                <p class="expense" style="font-weight:bold;">Egresos: ₡${formatVisual(e, 2)}</p>
-                <p class="profit" style="font-weight:bold;">Ingresos: ₡${formatVisual(i, 2)}</p>
-                <h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Total Filtro: ₡${formatVisual(ganancia, 2)}</h3>
+                <p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p>
+                <p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p>
+                <h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>
                 ${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}
             </div>
             <button class="btn btn-in" style="margin-top:15px;" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button>
@@ -813,7 +841,7 @@ function openHistoryLoader() {
         <div class="form-box" style="background:transparent; border:none; padding:0;">
             <input type="date" id="old-date">
             <input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal">
-            <input type="text" id="old-dsc" placeholder="Motivo">
+            <input type="text" id="old-dsc" placeholder="Detalle">
             <select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select>
             <select id="old-method">
                 <option value="EFECTIVO">💵 EFECTIVO</option>
@@ -840,7 +868,7 @@ function saveOldMove(apply) {
     const affectProfit = document.getElementById('old-affect-profit').checked;
     if(!d || !a || !s) return showMsg("Faltan datos"); 
     const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
-    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s + (affectProfit ? " (Post-Cierre)" : ""), method: m, date: finalDate, historical: !apply }); 
+    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: finalDate, historical: !apply }); 
     movements.sort((x,y) => new Date(y.date) - new Date(x.date)); 
     localStorage.setItem('copo_data', JSON.stringify(movements)); 
     updateUI(); closeModal('history-modal'); 
