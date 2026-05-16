@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 6.0</title>
+<title>Gestión Total 6.1</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -89,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 6.0</div>
+    <div class="version-tag">VERSIÓN 6.1</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -218,7 +218,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.0</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.1</div>
 </div>
 
 <div id="help-card">
@@ -262,7 +262,6 @@ let trashMovements = JSON.parse(localStorage.getItem('copo_trash')) || [];
 let virtualProfitBase = parseFloat(localStorage.getItem('copo_virtual_profit')) || 0;
 let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
-let pendingType = "", activeMovementId = null, activeStaffIndex = null;
 let currentZoomedId = null, currentZoomedStaffIdx = null;
 
 window.onload = function() { applyBusinessIdentity(); if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; updateUI(); renderStaff(); initManual(); };
@@ -456,23 +455,22 @@ function updateUI() {
     document.getElementById('net-profit').innerText = "₡" + formatVisual((tin - tout) + virtualProfitBase);
 }
 
-// CIRUGÍA: Función de disparo directa e inequívoca para navegadores web móviles seguros
+// CIRUGÍA: El disparador inyecta los metadatos directamente sobre el DOM del input (Inmune a purgas de GitHub)
 function triggerFileSelect(id, staffIdx = null) { 
-    activeMovementId = id; 
-    activeStaffIndex = staffIdx; 
     const fileInput = document.getElementById('table-file-input');
-    fileInput.value = ""; // Limpieza de caché del input obligatorio para forzar el onchange nativo
+    fileInput.dataset.moveId = id;
+    fileInput.dataset.staffIdx = staffIdx !== null ? staffIdx : "";
+    fileInput.value = ""; 
     fileInput.click(); 
 }
 
-// CIRUGÍA: Reescritura del procesador con aislamiento de variables para evitar que GitHub purgue los punteros activos
+// CIRUGÍA: Reescritura del receptor leyendo directamente las propiedades físicas del input
 function processTableFile(input) {
     const file = input.files[0];
-    if (file && activeMovementId !== null) {
-        // Almacenamos localmente las referencias antes de entrar al hilo asíncrono del FileReader
-        const targetMoveId = activeMovementId;
-        const targetStaffIdx = activeStaffIndex;
-        
+    const targetMoveId = parseInt(input.dataset.moveId);
+    const targetStaffIdx = input.dataset.staffIdx !== "" ? parseInt(input.dataset.staffIdx) : null;
+
+    if (file && !isNaN(targetMoveId)) {
         compressImage(file, (dataUrl) => {
             if (targetStaffIdx !== null) {
                 const sIdx = targetStaffIdx;
@@ -493,9 +491,9 @@ function processTableFile(input) {
             }
         });
     }
-    // CIRUGÍA: Limpieza inmediata del estado global posterior a la captura segura del evento
-    activeMovementId = null; 
-    activeStaffIndex = null;
+    // Reseteo físico seguro
+    input.removeAttribute('data-move-id');
+    input.removeAttribute('data-staff-idx');
     input.value = ""; 
 }
 
@@ -656,6 +654,7 @@ function openTrashModal() {
     openModal("Papelera de Reciclaje", html);
 }
 
+// Devuelve el movimiento a la base de datos viva y recalcula la contabilidad al instante
 function restoreMovement(id) {
     const idx = trashMovements.findIndex(m => m.id === id);
     if (idx !== -1) {
@@ -669,6 +668,7 @@ function restoreMovement(id) {
     }
 }
 
+// Borra de forma destructiva un elemento de la papelera
 function permanentlyDeleteMovement(id) {
     showConfirm("¿Deseas eliminar permanentemente este registro? No se podrá recuperar jamás.", () => {
         trashMovements = trashMovements.filter(m => m.id !== id);
