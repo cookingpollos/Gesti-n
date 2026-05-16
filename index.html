@@ -43,7 +43,7 @@ input, select { width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 
 .btn-in { background: #25D366; } .btn-out { background: #ff3b3b; } .btn-adj { background: #0026ff; }
 .btn-pay { background: #0026ff; } .btn-advance { background: #ff3b3b; }
 .btn-aguinaldo { background: #ff9900; }
-.btn-cap { background: #ff9900; } /* Cirugía: Ahora es naranja como el chanchito */
+.btn-cap { background: #ff9900; } 
 
 .btn-danger-clear { background: #331111; color: #ff3b3b; width: 100%; padding: 18px; border-radius: 10px; cursor: pointer; border: 1px solid #442222; font-weight: bold; font-size: 0.8rem; margin-top: 50px; text-transform: uppercase; transition: 0.3s; }
 
@@ -52,7 +52,6 @@ table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
 th { padding: 10px; text-align: left; color: #888; border-bottom: 1px solid #333; white-space: nowrap; }
 td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 
-/* Fila especial para Capital Inicial */
 .row-cap-base { color: #ff9900 !important; font-weight: bold; background: rgba(255, 153, 0, 0.05); }
 
 .img-preview-mini { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 1px solid #333; }
@@ -89,7 +88,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 4.8</div>
+    <div class="version-tag">VERSIÓN 4.9</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -215,7 +214,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 4.8</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 4.9</div>
 </div>
 
 <div id="help-card">
@@ -565,14 +564,45 @@ function deleteMovement(id) { showConfirm("¿Eliminar?", () => { movements = mov
 
 function editMovement(id) {
     const m = movements.find(x => x.id === id); if(!m) return;
-    const html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><label class="input-label">Monto Actual: ₡${formatVisual(m.amount)}</label><input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal"><label class="input-label">Detalle</label><input type="text" id="edit-dsc" value="${m.desc}"><button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button></div>`;
+    // CIRUGÍA: Convertir fecha ISO para el input datetime-local (necesita formato YYYY-MM-DDTHH:MM)
+    const d = new Date(m.date);
+    const offset = d.getTimezoneOffset() * 60000;
+    const localISO = new Date(d.getTime() - offset).toISOString().slice(0, 16);
+
+    const html = `
+        <div class="form-box" style="background:transparent; border:none; padding:0;">
+            <label class="input-label">Monto Actual: ₡${formatVisual(m.amount)}</label>
+            <input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal">
+            <label class="input-label">Detalle</label>
+            <input type="text" id="edit-dsc" value="${m.desc}">
+            <label class="input-label">Fecha y Hora</label>
+            <input type="datetime-local" id="edit-date" value="${localISO}">
+            <button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button>
+        </div>`;
     openModal("Editar Movimiento", html);
 }
 
 function saveEditMovement(id) {
-    const newAmt = cleanAmount(document.getElementById('edit-amt').value); const nDsc = document.getElementById('edit-dsc').value;
+    const newAmt = cleanAmount(document.getElementById('edit-amt').value); 
+    const nDsc = document.getElementById('edit-dsc').value;
+    const nDate = document.getElementById('edit-date').value;
+    
+    if(!nDate) return showMsg("La fecha no puede estar vacía.");
+
     const mIdx = movements.findIndex(x => x.id === id);
-    if(mIdx !== -1) { movements[mIdx].amount = newAmt; movements[mIdx].desc = nDsc; localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Cambios aplicados."); }
+    if(mIdx !== -1) { 
+        movements[mIdx].amount = newAmt; 
+        movements[mIdx].desc = nDsc; 
+        movements[mIdx].date = new Date(nDate).toISOString();
+        
+        // Re-ordenar por fecha para mantener la lógica de saldos
+        movements.sort((x, y) => new Date(y.date) - new Date(x.date));
+        
+        localStorage.setItem('copo_data', JSON.stringify(movements)); 
+        updateUI(); 
+        closeModal('history-modal'); 
+        showMsg("Cambios aplicados correctamente."); 
+    }
 }
 
 function addStaff() { 
@@ -662,7 +692,7 @@ function saveOldMove(apply) {
     if(!d || !a || !s) return showMsg("Faltan datos"); 
     const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
     movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: finalDate, historical: !apply }); 
-    movements.sort((x,y) => new Date(y.date) - new Date(x.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
+    movements.sort((x, y) => new Date(y.date) - new Date(x.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
 }
 </script>
 </body>
