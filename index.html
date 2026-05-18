@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 6.6</title>
+<title>Gestión Total 6.7</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -89,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 6.6</div>
+    <div class="version-tag">VERSIÓN 6.7</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -221,12 +221,12 @@ input:checked + .slider:before { transform: translateX(20px); }
             <label class="file-label" for="import-backup-file" style="border-style: dashed; background: #000; padding: 12px; text-align: center; border-radius: 8px; cursor: pointer; display: block; border: 2px dashed #333; color: #aaa; font-weight: bold; margin-bottom: 15px;">
                 <i class="fas fa-upload" style="margin-right: 8px; color: #3498db;"></i> RESTAURAR COPIA DE SEGURIDAD
             </label>
-            <input type="file" id="import-backup-file" accept=".json,application/json" style="display:none" onchange="importDataBackup(this)">
+            <input type="file" id="import-backup-file" accept="*" style="display:none" onchange="importDataBackup(this)">
 
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.6</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.7</div>
 </div>
 
 <div id="help-card">
@@ -271,8 +271,9 @@ let virtualProfitBase = parseFloat(localStorage.getItem('copo_virtual_profit')) 
 let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
 
+// Puntero de sesión encapsulado para el hilo asíncrono
 let currentUploadContext = { id: null, staffIdx: null };
-window.pendingAction = null; // CIRUGÍA: Restablecimiento de la variable global puente para el diálogo de confirmación
+window.pendingAction = null; 
 
 window.onload = function() { 
     applyBusinessIdentity(); 
@@ -317,7 +318,7 @@ function applyBusinessIdentity() {
     loginArea.innerHTML = bizData.logo ? `<img src="${bizData.logo}" class="logo-login" onclick="zoomImage('${bizData.logo}')">` : `<div class="logo-small" style="margin-bottom:20px;">${bizData.name}</div>`;
 }
 
-// CIRUGÍA ULTRA-TUNEADA: Motor de Compresión por Segmentación Directa de Buffer Secuencial. Procesa Megas saltándose los candados HTTPS de RAM del navegador
+// CIRUGÍA DETONANTE FIX: Motor directo de lectura equilibrada para imágenes sin sobrecargar la RAM
 function compressImage(file, callback) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -332,10 +333,6 @@ function compressImage(file, callback) {
             if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
             canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
-            
-            ctx.imageSmoothingEnabled = true;
-            ctx.imageSmoothingQuality = 'high';
-            
             ctx.drawImage(img, 0, 0, width, height);
             callback(canvas.toDataURL('image/jpeg', 0.65));
         };
@@ -481,6 +478,7 @@ function updateUI() {
     document.getElementById('net-profit').innerText = "₡" + formatVisual((tin - tout) + virtualProfitBase);
 }
 
+// CIRUGÍA QUIRÚRGICA FIX: El disparador ahora SÍ amarra el ID a la sesión global para que no se quede en null
 function triggerFileSelect(id, staffIdx = null) { 
     currentUploadContext.id = id;
     currentUploadContext.staffIdx = staffIdx;
@@ -522,7 +520,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "6.6",
+        version: "6.7",
         exportDate: new Date().toISOString(),
         copo_pin_hash: secure_pin_hash,
         copo_data: movements,
@@ -542,7 +540,7 @@ function exportDataBackup() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    showMsg("Copia de seguridad exportada con éxito. Guarde el archivo en un lugar seguro.");
+    showMsg("Copia de seguridad exportada con éxito.");
 }
 
 function importDataBackup(input) {
@@ -718,7 +716,6 @@ function deleteCurrentZoomedImage() {
 
 function showMsg(msg) { document.getElementById('dialog-title').innerText = "Aviso"; document.getElementById('dialog-msg').innerText = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" onclick="closeDialog()">OK</button>`; document.getElementById('custom-dialog').style.display = 'flex'; }
 
-// CIRUGÍA DE RESTAURACIÓN: El puente de confirmación amarra la acción pendiente a la ventana global de forma nativa e indestructible
 function showConfirm(msg, onConfirm) { 
     document.getElementById('dialog-title').innerText = "Confirmar"; 
     document.getElementById('dialog-msg').innerHTML = msg; 
@@ -906,7 +903,7 @@ function saveEditMovement(id) {
         localStorage.setItem('copo_data', JSON.stringify(movements)); 
         updateUI(); 
         closeModal('history-modal'); 
-        showMsg("Cambios aplicados y saldos sincronizados."); 
+        showMsg("Cambios aplicados."); 
     }
 }
 
@@ -995,7 +992,7 @@ function injectPeriodToDashboardProfit(amountToInject, fromDate, toDate) {
         localStorage.setItem('copo_virtual_profit', virtualProfitBase);
         updateUI();
         closeModal('history-modal');
-        showMsg("Monto consolidado perfectamente en el cuadro superior.");
+        showMsg("Monto consolidado.");
     });
 }
 
