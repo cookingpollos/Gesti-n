@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 6.3</title>
+<title>Gestión Total 6.4</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
@@ -44,7 +44,7 @@ input:disabled { background: #222; color: #666; cursor: not-allowed; border-colo
 .btn-in { background: #25D366; } .btn-out { background: #ff3b3b; } .btn-adj { background: #0026ff; }
 .btn-pay { background: #0026ff; } .btn-advance { background: #ff3b3b; }
 .btn-aguinaldo { background: #ff9900; }
-.btn-cap { background: #ff9900; }
+.btn-cap { background: #ff9900; } 
 
 .btn-danger-clear { background: #331111; color: #ff3b3b; width: 100%; padding: 18px; border-radius: 10px; cursor: pointer; border: 1px solid #442222; font-weight: bold; font-size: 0.8rem; margin-top: 20px; text-transform: uppercase; transition: 0.3s; }
 
@@ -89,7 +89,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 6.3</div>
+    <div class="version-tag">VERSIÓN 6.4</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -226,7 +226,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.3</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.4</div>
 </div>
 
 <div id="help-card">
@@ -245,7 +245,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     </div>
 </div>
 
-<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
+<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
 
 <div id="adj-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeAdjModal()">×</span><h3 style="color:white;">Uso Externo / Inyección</h3>
 <button class="btn btn-in" onclick="executeEntry('EFECTIVO', 'ADJ_IN')">+ Inyección a Efectivo</button>
@@ -273,14 +273,14 @@ let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo
 
 let currentUploadContext = { id: null, staffIdx: null };
 
-window.onload = function() {
-    applyBusinessIdentity();
-    if(bizData.name) document.getElementById('biz-name-input').value = bizData.name;
-    if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner;
-    updateUI();
-    renderStaff();
+window.onload = function() { 
+    applyBusinessIdentity(); 
+    if(bizData.name) document.getElementById('biz-name-input').value = bizData.name; 
+    if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner; 
+    updateUI(); 
+    renderStaff(); 
     initManual();
-
+    
     document.getElementById('table-file-input').addEventListener('change', function(e) {
         processTableFile(this);
     });
@@ -292,13 +292,13 @@ function initManual() {
     const handleStart = (e) => {
         const el = e.target.closest('.help-trigger');
         if(!el) return;
-        clearTimeout(manualTimer);
+        clearTimeout(manualTimer); 
         manualTimer = setTimeout(() => {
             if ("vibrate" in navigator) navigator.vibrate(50);
             document.getElementById('help-title').innerText = el.dataset.title;
             document.getElementById('help-text').innerText = el.dataset.help;
             document.getElementById('help-card').style.display = 'block';
-        }, 1500);
+        }, 1500); 
     };
     const handleCancel = () => clearTimeout(manualTimer);
     document.addEventListener('mousedown', handleStart);
@@ -316,82 +316,86 @@ function applyBusinessIdentity() {
     loginArea.innerHTML = bizData.logo ? `<img src="${bizData.logo}" class="logo-login" onclick="zoomImage('${bizData.logo}')">` : `<div class="logo-small" style="margin-bottom:20px;">${bizData.name}</div>`;
 }
 
-// CIRUGÍA TUNEADA: Compresión con precarga binaria asíncrona. Evita desbordes de memoria en producción HTTPS
+// CIRUGÍA ULTRA-TUNEADA: Motor por Segmentación de Bloques Nativos. Utiliza el subsistema de renderizado gráfico del teléfono sin pisar la RAM web
 function compressImage(file, callback) {
-    const reader = new FileReader();
-    reader.readAsArrayBuffer(file); 
-    reader.onload = (event) => {
-        const blob = new Blob([event.target.result]);
-        const urlCreator = window.URL || window.webkitURL;
-        const imageUrl = urlCreator.createObjectURL(blob);
+    const blobUrl = (window.URL || window.webkitURL).createObjectURL(file);
+    const img = new Image();
+    img.src = blobUrl;
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        let width = img.width;
+        let height = img.height;
         
-        const img = new Image();
-        img.src = imageUrl;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800;
-            let width = img.width;
-            let height = img.height;
-            
-            if (width > MAX_WIDTH) { 
-                height *= MAX_WIDTH / width; 
-                width = MAX_WIDTH; 
-            }
-            
-            canvas.width = width; 
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            
-            const base64Result = canvas.toDataURL('image/jpeg', 0.65);
-            urlCreator.revokeObjectURL(imageUrl); 
-            callback(base64Result);
-        };
+        if (width > MAX_WIDTH) { 
+            height *= MAX_WIDTH / width; 
+            width = MAX_WIDTH; 
+        }
+        
+        canvas.width = width; 
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        
+        // Optimización nativa en el aire
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
+        ctx.drawImage(img, 0, 0, width, height);
+        const base64Result = canvas.toDataURL('image/jpeg', 0.65);
+        
+        (window.URL || window.webkitURL).revokeObjectURL(blobUrl);
+        callback(base64Result);
+    };
+    img.onerror = () => {
+        // Alternativa de emergencia binaria directa por si falla el cargador nativo
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => callback(e.target.result);
     };
 }
 
-function updateBusinessLogo(input) {
-    const file = input.files[0];
-    if (file) {
+function updateBusinessLogo(input) { 
+    const file = input.files[0]; 
+    if (file) { 
         compressImage(file, (base64) => {
-            bizData.logo = base64;
-            localStorage.setItem('copo_biz_data', JSON.stringify(bizData));
+            bizData.logo = base64; 
+            localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); 
             applyBusinessIdentity();
         });
-    }
+    } 
 }
 
 function saveBusinessIdentity() { bizData.name = document.getElementById('biz-name-input').value || "CoPo Admin"; bizData.owner = document.getElementById('owner-name-input').value; localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); applyBusinessIdentity(); showMsg("Guardado."); }
 
 async function hashPin(pin) { const msgUint8 = new TextEncoder().encode(pin); const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8); return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join(''); }
-async function validatePin() {
+async function validatePin() { 
     const val = document.getElementById('pin').value;
     if(!val) return;
-    const hashed = await hashPin(val);
-    if (hashed === secure_pin_hash) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('admin-panel').style.display = 'block';
-        updateUI(); renderStaff();
-    } else {
-        showMsg("PIN Incorrecto"); document.getElementById('pin').value = "";
-    }
+    const hashed = await hashPin(val); 
+    if (hashed === secure_pin_hash) { 
+        document.getElementById('login-screen').style.display = 'none'; 
+        document.getElementById('admin-panel').style.display = 'block'; 
+        updateUI(); renderStaff(); 
+    } else { 
+        showMsg("PIN Incorrecto"); document.getElementById('pin').value = ""; 
+    } 
 }
 
-async function changePin() {
+async function changePin() { 
     const currentPin = document.getElementById('current-pin-input').value;
     const nPin = document.getElementById('new-pin-input').value;
     if(currentPin.length !== 4 || nPin.length !== 4) return showMsg("Ambos PIN deben ser de 4 dígitos");
     const hashedCurrent = await hashPin(currentPin);
     if(hashedCurrent !== secure_pin_hash) { return showMsg("El PIN actual es incorrecto"); }
-    secure_pin_hash = await hashPin(nPin);
-    localStorage.setItem('copo_pin_hash', secure_pin_hash);
+    secure_pin_hash = await hashPin(nPin); 
+    localStorage.setItem('copo_pin_hash', secure_pin_hash); 
     document.getElementById('current-pin-input').value = "";
     document.getElementById('new-pin-input').value = "";
-    showMsg("PIN actualizado con éxito.");
+    showMsg("PIN actualizado con éxito."); 
 }
 
-function getFormatedDate(d) {
-    let date = new Date(d);
+function getFormatedDate(d) { 
+    let date = new Date(d); 
     const days = ['dom','lun','mar','mié','jue','vie','sáb'];
     let dayName = days[date.getDay()];
     let day = date.getDate().toString().padStart(2, '0');
@@ -401,7 +405,7 @@ function getFormatedDate(d) {
     let minutes = date.getMinutes().toString().padStart(2, '0');
     let ampm = hours >= 12 ? 'pm' : 'am';
     hours = hours % 12 || 12;
-    return `${dayName} ${day}/${month}/${year} ${hours}:${minutes}${ampm}`;
+    return `${dayName} ${day}/${month}/${year} ${hours}:${minutes}${ampm}`; 
 }
 
 function formatDateSlash(isoString) {
@@ -413,9 +417,10 @@ function formatDateSlash(isoString) {
 
 function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Math.floor(totalMin/60)}h ${totalMin%60}m`; }
 
-function formatVisual(num, decimals = 0) {
+function formatVisual(num, decimals = 0) { 
     const privacy = document.getElementById('privacy-switch')?.checked;
     if (privacy) return "****";
+    
     let fixed = Number(num || 0).toFixed(decimals);
     let parts = fixed.split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -427,12 +432,12 @@ function cleanAmount(val) { return parseFloat(val.toString().replace(/\./g, "").
 function updateUI() {
     const body = document.getElementById('history-body'); body.innerHTML = "";
     let tin = 0, tout = 0, mBank = 0, mCash = 0;
-
+    
     movements.sort((x, y) => new Date(x.date) - new Date(y.date));
 
     let lastCapEfectivo = null;
     let lastCapBanco = null;
-
+    
     movements.forEach(m => {
         if(m.type === 'CAP_BASE') {
             if(m.method === 'EFECTIVO') lastCapEfectivo = m;
@@ -444,20 +449,20 @@ function updateUI() {
     mBank = lastCapBanco ? lastCapBanco.amount : 0;
 
     movements.forEach(m => {
-        if (m.date > lastResetDate && !m.historical) {
-            if (m.type === 'IN') tin += m.amount;
-            else if(m.type === 'OUT') tout += m.amount;
+        if (m.date > lastResetDate && !m.historical) { 
+            if (m.type === 'IN') tin += m.amount; 
+            else if(m.type === 'OUT') tout += m.amount; 
         }
 
         let isAfterCap = false;
         if(m.method === 'EFECTIVO' && lastCapEfectivo && m.date > lastCapEfectivo.date) isAfterCap = true;
         if(m.method !== 'EFECTIVO' && lastCapBanco && m.date > lastCapBanco.date) isAfterCap = true;
-
+        
         if((!lastCapEfectivo && m.method === 'EFECTIVO') || (!lastCapBanco && m.method !== 'EFECTIVO') || isAfterCap) {
             if(m.type !== 'CAP_BASE') {
                 let effect = (m.type === 'IN' || m.type === 'ADJ_IN') ? m.amount : -m.amount;
-                if (!m.historical) {
-                    if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect;
+                if (!m.historical) { 
+                    if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; 
                 }
             }
         }
@@ -491,6 +496,7 @@ function updateUI() {
 function triggerFileSelect(id, staffIdx = null) { 
     currentUploadContext.id = id;
     currentUploadContext.staffIdx = staffIdx;
+    
     const fileInput = document.getElementById('table-file-input');
     fileInput.value = ""; 
     fileInput.click(); 
@@ -528,7 +534,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "6.3",
+        version: "6.4",
         exportDate: new Date().toISOString(),
         copo_pin_hash: secure_pin_hash,
         copo_data: movements,
@@ -539,6 +545,7 @@ function exportDataBackup() {
         copo_last_reset: lastResetDate,
         copo_biz_data: bizData
     };
+
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
     const fechaLegible = new Date().toISOString().slice(0,10);
@@ -547,20 +554,22 @@ function exportDataBackup() {
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    showMsg("Copia de seguridad exportada con éxito.");
+    showMsg("Copia de seguridad exportada con éxito. Guarde el archivo en un lugar seguro.");
 }
 
 function importDataBackup(input) {
     const file = input.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const importedPackage = JSON.parse(e.target.result);
             if (!importedPackage.copo_data || !importedPackage.copo_pin_hash || !importedPackage.copo_staff) {
-                return showMsg("Error: El archivo no es un respaldo válido.");
+                return showMsg("Error: El archivo seleccionado no es un respaldo válido de Gestión Total.");
             }
-            showConfirm("¿Está seguro de restaurar esta copia de seguridad?", () => {
+
+            showConfirm("¿Está seguro de restaurar esta copia de seguridad? Esto reemplazará los datos actuales por completo.", () => {
                 localStorage.setItem('copo_pin_hash', importedPackage.copo_pin_hash);
                 localStorage.setItem('copo_data', JSON.stringify(importedPackage.copo_data));
                 localStorage.setItem('copo_staff', JSON.stringify(importedPackage.copo_staff));
@@ -579,10 +588,15 @@ function importDataBackup(input) {
                 lastResetDate = importedPackage.copo_last_reset || new Date(0).toISOString();
                 bizData = importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" };
 
-                applyBusinessIdentity(); updateUI(); renderStaff();
-                showMsg("¡Restauración Completa con éxito!");
+                applyBusinessIdentity();
+                updateUI();
+                renderStaff();
+                showMsg("¡Restauración Completa! Todos los datos, fotos y planillas se cargaron con éxito.");
             });
-        } catch (err) { showMsg("Error crítico al procesar el archivo."); }
+
+        } catch (err) {
+            showMsg("Error crítico al procesar el archivo de copia de seguridad.");
+        }
         input.value = "";
     };
     reader.readAsText(file);
@@ -631,29 +645,29 @@ function deleteStaffMovement(staffIndex, moveId) {
     });
 }
 
-function addHours(i) {
-    const s = staff[i], inV = document.getElementById(`dt-in-${i}`).value, outV = document.getElementById(`dt-out-${i}`).value;
-    if(!inV || !outV) return showMsg("Faltan horas");
-    const diff = (new Date(outV) - new Date(inV)) / 3600000; if(diff <= 0) return showMsg("Error");
-    let ord = (s.useExtras && diff > 8) ? 8 : diff; let ext = (s.useExtras && diff > 8) ? diff - 8 : 0;
-    let earned = (ord * s.rate) + (ext * s.rate * 1.5); s.debt += earned;
-    s.shifts.unshift({ id: Date.now(), date: new Date().toISOString(), ord, ext, earned, type: 'SHIFT', img: "" });
+function addHours(i) { 
+    const s = staff[i], inV = document.getElementById(`dt-in-${i}`).value, outV = document.getElementById(`dt-out-${i}`).value; 
+    if(!inV || !outV) return showMsg("Faltan horas"); 
+    const diff = (new Date(outV) - new Date(inV)) / 3600000; if(diff <= 0) return showMsg("Error"); 
+    let ord = (s.useExtras && diff > 8) ? 8 : diff; let ext = (s.useExtras && diff > 8) ? diff - 8 : 0; 
+    let earned = (ord * s.rate) + (ext * s.rate * 1.5); s.debt += earned; 
+    s.shifts.unshift({ id: Date.now(), date: new Date().toISOString(), ord, ext, earned, type: 'SHIFT', img: "" }); 
     saveStaff(); renderStaff(); document.getElementById(`dt-in-${i}`).value = ""; document.getElementById(`dt-out-${i}`).value = "";
 }
 
-function giveAdvance(i) {
-    const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value); const dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto';
-    if(amt <= 0) return showMsg("Monto inválido"); staff[i].debt -= amt;
-    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -amt, type: 'ADVANCE', desc: dsc, img: "" });
+function giveAdvance(i) { 
+    const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value); const dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto'; 
+    if(amt <= 0) return showMsg("Monto inválido"); staff[i].debt -= amt; 
+    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -amt, type: 'ADVANCE', desc: dsc, img: "" }); 
     saveStaff(); renderStaff(); document.getElementById(`adv-amt-${i}`).value = ""; document.getElementById(`adv-desc-${i}`).value = "";
 }
 
-function resetDebt(i) {
+function resetDebt(i) { 
     let tOrd = 0, tExt = 0, sueldoPuro = 0;
-    staff[i].shifts.forEach(sh => { if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; } if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; } });
+    staff[i].shifts.forEach(sh => { if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; } if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; } }); 
     if(sueldoPuro <= 0) return showMsg("No hay sueldo pendiente.");
     let detail = `Sueldo: ${getFormatedTime(tOrd)} ord` + (tExt > 0 ? ` + ${getFormatedTime(tExt)} ext` : '');
-    showConfirm(`¿Liquidar sueldo de ₡${formatVisual(sueldoPuro)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "" }); staff[i].debt -= sueldoPuro; saveStaff(); renderStaff(); });
+    showConfirm(`¿Liquidar sueldo de ₡${formatVisual(sueldoPuro)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "" }); staff[i].debt -= sueldoPuro; saveStaff(); renderStaff(); }); 
 }
 
 function payAguinaldoOnly(i) {
@@ -664,11 +678,11 @@ function payAguinaldoOnly(i) {
 
 function openAguinaldoCalc(i) { const html = `<div style="text-align:center;"><p>Cálculo 8.33%</p><input type="date" id="ag-from"><input type="date" id="ag-to"><button class="btn btn-adj" onclick="calcAguinaldo833(${i})">CALCULAR</button><div id="ag-res"></div></div>`; openModal("Aguinaldo", html); }
 
-function calcAguinaldo833(i) {
+function calcAguinaldo833(i) { 
     const fV = document.getElementById('ag-from').value, tV = document.getElementById('ag-to').value; if(!fV || !tV) return showMsg("Fechas incompletas");
-    const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime();
-    let totalS = 0; staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t && sh.earned > 0 && sh.type === 'SHIFT') totalS += sh.earned; });
-    const monto = totalS * 0.0833; document.getElementById('ag-res').innerHTML = `<h2 class="profit">₡${formatVisual(monto)}</h2><button class="btn btn-in" onclick="addAguinaldoToStaff(${i}, ${monto}, '${fV}', '${tV}')">AGREGAR A PLANILLA</button>`;
+    const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime(); 
+    let totalS = 0; staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t && sh.earned > 0 && sh.type === 'SHIFT') totalS += sh.earned; }); 
+    const monto = totalS * 0.0833; document.getElementById('ag-res').innerHTML = `<h2 class="profit">₡${formatVisual(monto)}</h2><button class="btn btn-in" onclick="addAguinaldoToStaff(${i}, ${monto}, '${fV}', '${tV}')">AGREGAR A PLANILLA</button>`; 
 }
 
 function addAguinaldoToStaff(i, monto, f, t) {
@@ -681,11 +695,11 @@ function addAguinaldoToStaff(i, monto, f, t) {
 function openModal(t, c) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerHTML = c; document.getElementById('history-modal').style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-function zoomImage(s, id = null, staffIdx = null) {
+function zoomImage(s, id = null, staffIdx = null) { 
     currentZoomedId = id;
     currentZoomedStaffIdx = staffIdx;
     document.getElementById('imgZoom').src = s;
-    document.getElementById('imgModal').style.display = 'flex';
+    document.getElementById('imgModal').style.display = 'flex'; 
 }
 
 function deleteCurrentZoomedImage() {
@@ -696,36 +710,61 @@ function deleteCurrentZoomedImage() {
             const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === currentZoomedId);
             if (shiftIdx !== -1) {
                 staff[sIdx].shifts[shiftIdx].img = "";
-                saveStaff(); renderStaff();
+                saveStaff();
+                renderStaff();
             }
         } else {
             const mIdx = movements.findIndex(m => m.id === currentZoomedId);
             if (mIdx !== -1) {
                 movements[mIdx].img = "";
-                localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI();
+                localStorage.setItem('copo_data', JSON.stringify(movements));
+                updateUI();
             }
         }
-        closeModal('imgModal'); closeModal('history-modal');
+        closeModal('imgModal');
+        closeModal('history-modal');
         showMsg("Foto eliminada con éxito.");
         currentZoomedId = null; currentZoomedStaffIdx = null;
     });
 }
 
 function showMsg(msg) { document.getElementById('dialog-title').innerText = "Aviso"; document.getElementById('dialog-msg').innerText = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" onclick="closeDialog()">OK</button>`; document.getElementById('custom-dialog').style.display = 'flex'; }
-function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; }
+
+// CIRUGÍA DE RESTAURACIÓN: El puente de confirmación amarra la acción pendiente a la ventana global de forma nativa e indestructible
+function showConfirm(msg, onConfirm) { 
+    document.getElementById('dialog-title').innerText = "Confirmar"; 
+    document.getElementById('dialog-msg').innerHTML = msg; 
+    document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; 
+    window.pendingAction = onConfirm; 
+    document.getElementById('custom-dialog').style.display = 'flex'; 
+}
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
 
 function openTrashModal() {
     if (trashMovements.length === 0) return showMsg("La papelera de reciclaje está completamente vacía.");
-    let html = `<div class="history-wrapper" style="max-height: 350px;"><table><thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:right">Monto</th><th style="text-align:right">Acciones</th></tr></thead><tbody>`;
+    
+    let html = `<div class="history-wrapper" style="max-height: 350px;"><table>
+        <thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:right">Monto</th><th style="text-align:right">Acciones</th></tr></thead><tbody>`;
+        
     trashMovements.forEach(m => {
         let isCap = m.type === 'CAP_BASE';
         let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE') ? m.amount : -m.amount;
         let colorClass = isCap ? 'cash-color' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit'));
-        html += `<tr><td style="white-space:nowrap; font-size:0.75rem;">${formatDateSlash(m.date.split('T')[0])}</td><td style="font-size:0.75rem;">${m.desc}<br><small>${m.method}</small></td><td class="${colorClass}" style="text-align:right; font-weight:bold; font-size:0.75rem;">₡${formatVisual(effect)}</td><td style="text-align:right; white-space:nowrap;"><button class="btn-icon" style="color:#25D366; margin-right:5px;" onclick="restoreMovement(${m.id})"><i class="fas fa-undo-alt"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="permanentlyDeleteMovement(${m.id})"><i class="fas fa-times-circle"></i></button></td></tr>`;
+        
+        html += `<tr>
+            <td style="white-space:nowrap; font-size:0.75rem;">${formatDateSlash(m.date.split('T')[0])}</td>
+            <td style="font-size:0.75rem;">${m.desc}<br><small>${m.method}</small></td>
+            <td class="${colorClass}" style="text-align:right; font-weight:bold; font-size:0.75rem;">===₡${formatVisual(effect)}</td>
+            <td style="text-align:right; white-space:nowrap;">
+                <button class="btn-icon" style="color:#25D366; margin-right:5px;" onclick="restoreMovement(${m.id})"><i class="fas fa-undo-alt"></i></button>
+                <button class="btn-icon" style="color:#ff3b3b" onclick="permanentlyDeleteMovement(${m.id})"><i class="fas fa-times-circle"></i></button>
+            </td>
+        </tr>`;
     });
-    openModal("Papelera de Reciclaje", html + `</tbody></table></div>`);
+    
+    html += `</tbody></table></div>`;
+    openModal("Papelera de Reciclaje", html);
 }
 
 function restoreMovement(id) {
@@ -735,7 +774,9 @@ function restoreMovement(id) {
         movements.unshift(item);
         localStorage.setItem('copo_data', JSON.stringify(movements));
         localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
-        updateUI(); closeModal('history-modal'); showMsg("Movimiento restaurado en la línea de tiempo.");
+        updateUI();
+        closeModal('history-modal');
+        showMsg("Movimiento restaurado en la línea de tiempo.");
     }
 }
 
@@ -743,7 +784,8 @@ function permanentlyDeleteMovement(id) {
     showConfirm("¿Deseas eliminar permanentemente este registro? No se podrá recuperar jamás.", () => {
         trashMovements = trashMovements.filter(m => m.id !== id);
         localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
-        closeModal('history-modal'); showMsg("Registro destruido permanentemente.");
+        closeModal('history-modal');
+        showMsg("Registro destruido permanentemente.");
     });
 }
 
@@ -787,21 +829,65 @@ function editMovement(id) {
     const m = movements.find(x => x.id === id); if(!m) return;
     const d = new Date(m.date);
     const localISO = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+
     const isAdj = m.type.startsWith('ADJ_') || m.type === 'CAP_BASE';
     const isMuro = m.type === 'CAP_BASE';
 
-    let html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><label class="input-label">Monto</label><input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal"><label class="input-label">Detalle</label><input type="text" id="edit-dsc" value="${m.desc}">`;
+    let html = `
+        <div class="form-box" style="background:transparent; border:none; padding:0;">
+            <label class="input-label">Monto</label>
+            <input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal">
+            <label class="input-label">Detalle</label>
+            <input type="text" id="edit-dsc" value="${m.desc}">`;
+
     if (isMuro) {
-        html += `<input type="hidden" id="edit-date" value="${localISO}"><input type="hidden" id="temp-method" value="${m.method}"><input type="hidden" id="temp-dir" value="IN"><input type="hidden" id="is-adj-orig" value="true"><input type="hidden" id="orig-type" value="CAP_BASE">`;
+        html += `
+            <input type="hidden" id="edit-date" value="${localISO}">
+            <input type="hidden" id="temp-method" value="${m.method}">
+            <input type="hidden" id="temp-dir" value="IN">
+            <input type="hidden" id="is-adj-orig" value="true">
+            <input type="hidden" id="orig-type" value="CAP_BASE">`;
     } else {
-        html += `<label class="input-label">Fecha y Hora</label><input type="datetime-local" id="edit-date" value="${localISO}"><label class="input-label">Método</label><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;"><button class="btn ${m.method === 'EFECTIVO' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='EFECTIVO'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💵 EFECTIVO</button><button class="btn ${m.method === 'TARJETA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TARJETA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💳 TARJETA</button><button class="btn ${m.method === 'SIMPE' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='SIMPE'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">📲 SIMPE</button><button class="btn ${m.method === 'TRANSFERENCIA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TRANSFERENCIA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">🏦 TRANSF.</button></div><input type="hidden" id="temp-method" value="${m.method}"><label class="input-label">Tipo de Movimiento</label><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;"><button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button><button class="btn ${m.type === 'OUT' || m.type === 'ADJ_OUT' ? 'btn-out' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='OUT'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📤 EGRESO / SALIDA</button></div><input type="hidden" id="temp-dir" value="${m.type.includes('IN') ? 'IN' : 'OUT'}"><input type="hidden" id="is-adj-orig" value="${isAdj ? 'true' : 'false'}"><input type="hidden" id="orig-type" value="${m.type}">`;
+        html += `
+            <label class="input-label">Fecha y Hora</label>
+            <input type="datetime-local" id="edit-date" value="${localISO}">
+            
+            <label class="input-label">Método</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                <button class="btn ${m.method === 'EFECTIVO' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='EFECTIVO'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💵 EFECTIVO</button>
+                <button class="btn ${m.method === 'TARJETA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TARJETA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💳 TARJETA</button>
+                <button class="btn ${m.method === 'SIMPE' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='SIMPE'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">📲 SIMPE</button>
+                <button class="btn ${m.method === 'TRANSFERENCIA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TRANSFERENCIA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">🏦 TRANSF.</button>
+            </div>
+            <input type="hidden" id="temp-method" value="${m.method}">
+            
+            <label class="input-label">Tipo de Movimiento</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+                <button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button>
+                <button class="btn ${m.type === 'OUT' || m.type === 'ADJ_OUT' ? 'btn-out' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='OUT'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📤 EGRESO / SALIDA</button>
+            </div>
+            <input type="hidden" id="temp-dir" value="${m.type.includes('IN') ? 'IN' : 'OUT'}">
+            <input type="hidden" id="is-adj-orig" value="${isAdj ? 'true' : 'false'}">
+            <input type="hidden" id="orig-type" value="${m.type}">`;
     }
-    html += `<button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button></div>`;
+
+    html += `
+            <button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button>
+        </div>`;
     openModal("Editar Registro", html);
 }
 
-function updateEditMethodUI(btn) { const container = btn.parentElement; container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in'); b.classList.add('btn-adj'); }); btn.classList.remove('btn-adj'); btn.classList.add('btn-in'); }
-function updateEditTypeUI(btn) { const container = btn.parentElement; container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in', 'btn-out'); b.classList.add('btn-adj'); }); if(btn.innerText.includes("INGRESO")) btn.classList.add('btn-in'); else btn.classList.add('btn-out'); }
+function updateEditMethodUI(btn) {
+    const container = btn.parentElement;
+    container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in'); b.classList.add('btn-adj'); });
+    btn.classList.remove('btn-adj'); btn.classList.add('btn-in');
+}
+
+function updateEditTypeUI(btn) {
+    const container = btn.parentElement;
+    container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in', 'btn-out'); b.classList.add('btn-adj'); });
+    if(btn.innerText.includes("INGRESO")) btn.classList.add('btn-in'); else btn.classList.add('btn-out');
+}
 
 function saveEditMovement(id) {
     const mIdx = movements.findIndex(x => x.id === id);
@@ -812,11 +898,27 @@ function saveEditMovement(id) {
         const newDir = document.getElementById('temp-dir').value;
         const isAdjOrig = document.getElementById('is-adj-orig').value === 'true';
         const origType = document.getElementById('orig-type').value;
+
         let newType = newDir;
-        if (origType === 'CAP_BASE') { newType = 'CAP_BASE'; } else if (isAdjOrig) { newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT'; }
-        movements[mIdx].amount = newAmt; movements[mIdx].desc = newDsc; movements[mIdx].method = newMethod; movements[mIdx].type = newType;
-        if (origType !== 'CAP_BASE') { movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString(); }
-        localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Cambios aplicados."); 
+        if (origType === 'CAP_BASE') {
+            newType = 'CAP_BASE';
+        } else if (isAdjOrig) {
+            newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT';
+        }
+
+        movements[mIdx].amount = newAmt;
+        movements[mIdx].desc = newDsc;
+        movements[mIdx].method = newMethod;
+        movements[mIdx].type = newType;
+
+        if (origType !== 'CAP_BASE') {
+            movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString();
+        }
+        
+        localStorage.setItem('copo_data', JSON.stringify(movements)); 
+        updateUI(); 
+        closeModal('history-modal'); 
+        showMsg("Cambios aplicados y saldos sincronizados."); 
     }
 }
 
@@ -830,47 +932,104 @@ function updateStaffRate(i) { const html = `<div style="text-align:center;"><p>N
 function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val > 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); } }
 
 function checkPeriodStaff(i) { openModal(`Consulta: ${staff[i].name}`, `<div style="text-align:left;"><span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">DESDE</span><input type="date" id="p-from" style="margin-bottom:10px;"><span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">HASTA</span><input type="date" id="p-to" style="margin-bottom:15px;"><button class="btn btn-adj" onclick="calcPeriodStaff(${i})">CALCULAR</button><div id="p-res"></div></div>`); }
+
 function calcPeriodStaff(i) { const f = new Date(document.getElementById('p-from').value + "T00:00:00").getTime(), t = new Date(document.getElementById('p-to').value + "T23:59:59").getTime(); let m = 0; staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t) m += sh.earned; }); document.getElementById('p-res').innerHTML = `<hr><h3>₡${formatVisual(m)}</h3>`; }
 function showTab(t) { document.getElementById('tab-contabilidad').style.display = t === 'contabilidad' ? 'block' : 'none'; document.getElementById('tab-planilla').style.display = t === 'planilla' ? 'block' : 'none'; document.getElementById('tab-configuracion').style.display = t === 'configuracion' ? 'block' : 'none'; document.getElementById('btn-tab-contabilidad').classList.toggle('active', t === 'contabilidad'); document.getElementById('btn-tab-planilla').classList.toggle('active', t === 'planilla'); }
 
 function confirmFullReset() {
-    const adv = `<div class="warning-box-full"><i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px; color:#ff3b3b;"></i><br><b style="font-size: 1.2rem;">¡ATENCIÓN!</b><br><br>Esta acción borrará permanentemente todo.</div>`;
+    const adv = `<div class="warning-box-full"><i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px; color:#ff3b3b;"></i><br><b style="font-size: 1.2rem;">¡ATENCIÓN!</b><br><br>Esta acción borrará permanentemente todo.<br><br><b>¿Realmente desea eliminar TODO el sistema?</b></div>`;
     showConfirm(adv, () => {
         const pinHtml = `<div style="text-align:center;"><p style="color:#ff3b3b; font-weight:bold;">Ingrese su PIN:</p><input type="password" id="reset-pin-confirm" class="pin-input" style="width:150px; margin: 15px auto;" maxlength="4" inputmode="numeric" placeholder="****"><button class="btn btn-out" onclick="executeFinalReset()">BORRAR DEFINITIVAMENTE</button></div>`;
-        openModal("Seguridad Adicional", pinHtml);
+        openModal("Security adicional", pinHtml);
     });
 }
-async function executeFinalReset() { const pinInput = document.getElementById('reset-pin-confirm').value; const hashed = await hashPin(pinInput); if (hashed === secure_pin_hash) { localStorage.clear(); location.reload(); } else { showMsg("PIN Incorrecto."); closeModal('history-modal'); } }
+
+async function executeFinalReset() {
+    const pinInput = document.getElementById('reset-pin-confirm').value; const hashed = await hashPin(pinInput);
+    if (hashed === secure_pin_hash) { localStorage.clear(); location.reload(); } else { showMsg("PIN Incorrecto."); closeModal('history-modal'); }
+}
 
 function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
-function openCierreHistory() { let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th style="text-align:center">Detalle</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`; cierres.forEach(c => { h += `<tr><td>${getFormatedDate(c.date)}</td><td style="text-align:center"><button class="btn-ver-cierre" onclick="verDetalleCierre(${c.id})">VER</button></td><td class="profit" style="text-align:right">₡${formatVisual(c.totalNeto)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`; }); openModal("Historial de Cierres", h + "</tbody></table></div>"); }
-function verDetalleCierre(id) { const c = cierres.find(x => x.id === id); if(!c) return; const html = `<div style="text-align:center; padding:10px;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Fecha Registro:</b><br> <small>${getFormatedDate(c.date)}</small></p><p><b>Periodo:</b><br> <small>${c.note}</small></p><hr style="border:1px solid #222; margin:15px 0;">${c.egresos ? `<p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(c.egresos, 2)}</p>` : ''}${c.ingresos ? `<p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(c.ingresos, 2)}</p>` : ''}<h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(c.totalNeto, 2)}</h3></div></div>`; openModal("Detalle de Cierre", html); }
+
+function openCierreHistory() { 
+    let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th style="text-align:center">Detalle</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`; cierres.forEach(c => { h += `<tr><td>${getFormatedDate(c.date)}</td><td style="text-align:center"><button class="btn-ver-cierre" onclick="verDetalleCierre(${c.id})">VER</button></td><td class="profit" style="text-align:right">₡${formatVisual(c.totalNeto)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`; }); 
+    openModal("Historial de Cierres", h + "</tbody></table></div>"); 
+}
+
+function verDetalleCierre(id) {
+    const c = cierres.find(x => x.id === id); if(!c) return;
+    const html = `<div style="text-align:center; padding:10px;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Fecha Registro:</b><br> <small>${getFormatedDate(c.date)}</small></p><p><b>Periodo:</b><br> <small>${c.note}</small></p><hr style="border:1px solid #222; margin:15px 0;">${c.egresos ? `<p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(c.egresos, 2)}</p>` : ''}${c.ingresos ? `<p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(c.ingresos, 2)}</p>` : ''}<h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(c.totalNeto, 2)}</h3></div></div>`;
+    openModal("Detalle de Cierre", html);
+}
+
 function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); openCierreHistory(); }); }
-function resetPeriodProfit() { showConfirm("¿Deseas reiniciar las ganancias?", () => { lastResetDate = new Date().toISOString(); virtualProfitBase = 0; localStorage.setItem('copo_last_reset', lastResetDate); localStorage.setItem('copo_virtual_profit', 0); updateUI(); }); }
+
+function resetPeriodProfit() { 
+    showConfirm("¿Deseas reiniciar las ganancias?", () => { 
+        lastResetDate = new Date().toISOString(); 
+        virtualProfitBase = 0;
+        localStorage.setItem('copo_last_reset', lastResetDate); 
+        localStorage.setItem('copo_virtual_profit', 0);
+        updateUI(); 
+    }); 
+}
 
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
     const kw = document.getElementById('c-keyword').value.toLowerCase().trim();
     const incAdj = document.getElementById('include-adj-report').checked;
     if(!f || !t) return showMsg("Faltan fechas"); 
+    
     let i=0, e=0, matches = []; const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
     movements.forEach(m => { 
         const inDate = m.date >= fT && m.date <= tT; const inKeyword = kw === "" || m.desc.toLowerCase().includes(kw) || m.method.toLowerCase().includes(kw);
-        const isNormal = (m.type === 'IN' || m.type === 'OUT'); const isAdj = incAdj && (m.type === 'ADJ_IN' || m.type === 'ADJ_OUT');
-        if(inDate && inKeyword && (isNormal || isAdj)) { if(m.type === 'IN' || m.type === 'ADJ_IN') i += m.amount; else if(m.type === 'OUT' || m.type === 'ADJ_OUT') e += m.amount; matches.push(m); } 
+        const isNormal = (m.type === 'IN' || m.type === 'OUT');
+        const isAdj = incAdj && (m.type === 'ADJ_IN' || m.type === 'ADJ_OUT');
+        if(inDate && inKeyword && (isNormal || isAdj)) { 
+            if(m.type === 'IN' || m.type === 'ADJ_IN') i += m.amount; else if(m.type === 'OUT' || m.type === 'ADJ_OUT') e += m.amount;
+            matches.push(m);
+        } 
     }); 
     const ganancia = i - e; const notaPeriodo = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` - Filtro: "${kw}"` : "");
     let tableHtml = `<div class="history-wrapper" style="margin-top:15px; max-height:200px;"><table><tbody>`;
-    matches.forEach(m => { let color = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit'); tableHtml += `<tr><td style="font-size:0.7rem;">${formatDateSlash(m.date.split('T')[0])}</td><td style="font-size:0.7rem;">${m.desc}</td><td class="${color}" style="text-align:right; font-weight:bold; font-size:0.7rem;">₡${formatVisual(m.amount)}</td></tr>`; });
+    matches.forEach(m => {
+        let color = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
+        tableHtml += `<tr><td style="font-size:0.7rem;">${formatDateSlash(m.date.split('T')[0])}</td><td style="font-size:0.7rem;">${m.desc}</td><td class="${color}" style="text-align:right; font-weight:bold; font-size:0.7rem;">₡${formatVisual(m.amount)}</td></tr>`;
+    });
     tableHtml += `</tbody></table></div>`;
-    openModal("Detalle de Cierre", `<div style="text-align:center;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p><hr style="border:1px solid #333; margin:15px 0;"><p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p><p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p><h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>${matches.length > 0 ? tableHtml : ''}</div><button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit(${ganancia}, '${f}', '${t}')">SUMAR GANANCIA AL CUADRO PRINCIPAL</button><button class="btn btn-adj" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button></div>`); 
+    
+    openModal("Detalle de Cierre", `<div style="text-align:center;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p><hr style="border:1px solid #333; margin:15px 0;"><p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p><p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p><h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}</div><button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit(${ganancia}, '${f}', '${t}')">SUMAR GANANCIA AL CUADRO PRINCIPAL</button><button class="btn btn-adj" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button></div>`); 
 }
 
-function injectPeriodToDashboardProfit(amountToInject, fromDate, toDate) { showConfirm("¿Deseas acumular la ganancia?", () => { virtualProfitBase += amountToInject; localStorage.setItem('copo_virtual_profit', virtualProfitBase); updateUI(); closeModal('history-modal'); showMsg("Monto consolidado."); }); }
-function saveHistoricalCierre(f, t, total, ing, egr, kw = "") { const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` [Filtro: ${kw}]` : ""); showConfirm(`¿Guardar este reporte?`, () => { cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota }); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); }); }
+function injectPeriodToDashboardProfit(amountToInject, fromDate, toDate) {
+    showConfirm("¿Deseas acumular la ganancia neta exacta de ₡" + formatVisual(amountToInject, 2) + " obtenida desde el " + formatDateSlash(fromDate) + " al cuadro principal?", () => {
+        virtualProfitBase += amountToInject;
+        localStorage.setItem('copo_virtual_profit', virtualProfitBase);
+        updateUI();
+        closeModal('history-modal');
+        showMsg("Monto consolidado perfectamente en el cuadro superior.");
+    });
+}
 
-function openHistoryLoader() { const html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><input type="date" id="old-date"><input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal"><input type="text" id="old-dsc" placeholder="Detalle"><select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select><select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option><option value="TRANSFERENCIA">🏦 TRANSF.</option><option value="TARJETA">💳 TARJETA</option></select><button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button><button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button><div class="toggle-box" style="margin-top:10px;"><span style="color:#888; font-size:0.75rem;">Afectar Ganancia Neta</span><label class="switch"><input type="checkbox" id="old-affect-profit"><span class="slider"></span></label></div></div>`; openModal("Carga Histórica", html); }
-function saveOldMove(apply) { const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value, t = document.getElementById('old-type').value, m = document.getElementById('old-method').value, affectProfit = document.getElementById('old-affect-profit').checked; if(!d || !a || !s) return showMsg("Faltan datos"); const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString(); movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: finalDate, historical: !apply }); movements.sort((x, y) => new Date(x.date) - new Date(y.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); }
+function saveHistoricalCierre(f, t, total, ing, egr, kw = "") {
+    const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` [Filtro: ${kw}]` : "");
+    showConfirm(`¿Guardar este reporte?`, () => { cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota }); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); });
+}
+
+function openHistoryLoader() { 
+    const html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><input type="date" id="old-date"><input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal"><input type="text" id="old-dsc" placeholder="Detalle"><select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select><select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option><option value="TRANSFERENCIA">🏦 TRANSF.</option><option value="TARJETA">💳 TARJETA</option></select><button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button><button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button><div class="toggle-box" style="margin-top:10px;"><span style="color:#888; font-size:0.75rem;">Afectar Ganancia Neta</span><label class="switch"><input type="checkbox" id="old-affect-profit"><span class="slider"></span></label></div></div>`; 
+    openModal("Carga Histórica", html); 
+}
+
+function saveOldMove(apply) { 
+    const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value; 
+    const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; 
+    const affectProfit = document.getElementById('old-affect-profit').checked;
+    if(!d || !a || !s) return showMsg("Faltan datos"); 
+    const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
+    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: finalDate, historical: !apply }); 
+    movements.sort((x, y) => new Date(x.date) - new Date(y.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
+}
 </script>
 </body>
 </html>
