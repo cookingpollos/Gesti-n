@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 6.2</title>
+<title>Gestión Total 7.0 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
 <style>
 body { background-color: #0b0b0b; color: #ffffff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; overflow-x: hidden; }
 body.modal-open { overflow: hidden; }
@@ -83,13 +85,20 @@ input:checked + .slider:before { transform: translateX(20px); }
 @keyframes slideUp { from { bottom: -100px; opacity: 0; } to { bottom: 20px; opacity: 1; } }
 
 .version-tag { text-align: center; font-size: 0.7rem; color: #444; font-weight: bold; margin-bottom: 15px; }
+
+/* Nuevo estilo para el panel de Google Cloud */
+.seccion-google { background: rgba(0, 38, 255, 0.03); border: 1px dashed #0026ff; padding: 15px; border-radius: 12px; margin-top: 20px; text-align: left; }
+.seccion-google h4 { margin-top: 0; color: #3498db; display: flex; align-items: center; gap: 8px; }
+.status-badge { display: inline-block; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
+.status-disconnected { background: #331111; color: #ff3b3b; border: 1px solid #552222; }
+.status-connected { background: #113311; color: #25D366; border: 1px solid #225522; }
 </style>
 </head>
 <body id="main-body">
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 6.2</div>
+    <div class="version-tag">VERSIÓN 7.0 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -224,9 +233,20 @@ input:checked + .slider:before { transform: translateX(20px); }
             <input type="file" id="import-backup-file" accept=".json" style="display:none" onchange="importDataBackup(this)">
 
             <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
+            
+            <div class="seccion-google">
+                <h4><i class="fab fa-google" style="color: #4285F4;"></i> Sincronización Google Cloud</h4>
+                <p style="font-size: 0.75rem; color: #aaa; margin: 5px 0 15px 0; line-height: 1.3;">Conecta tu contabilidad en tiempo real a Google Sheets y almacena las facturas originales directo en tu cuenta personal de Google Drive de 15 GB.</p>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+                    <span style="font-size: 0.8rem; font-weight: bold; color: #ccc;">Estado de Nube:</span>
+                    <span id="cloud-status" class="status-badge status-disconnected">Desconectado</span>
+                </div>
+                <p id="user-logged-email" style="font-size: 0.8rem; color: #25D366; display: none; margin-bottom: 10px; font-weight: bold;"></p>
+                <button id="btn-connect-google" class="btn btn-adj" style="background: #4285F4; color: white; margin: 0;" onclick="handleAuthClick()"><i class="fas fa-link" style="margin-right: 8px;"></i> Conectar con Google</button>
+            </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 6.2</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -245,7 +265,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     </div>
 </div>
 
-<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
+<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
 
 <div id="adj-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeAdjModal()">×</span><h3 style="color:white;">Uso Externo / Inyección</h3>
 <button class="btn btn-in" onclick="executeEntry('EFECTIVO', 'ADJ_IN')">+ Inyección a Efectivo</button>
@@ -262,6 +282,22 @@ input:checked + .slider:before { transform: translateX(20px); }
 <div id="custom-dialog" class="modal"><div class="modal-content-wrapper" style="text-align:center;"><h3 id="dialog-title">Aviso</h3><div id="dialog-msg" style="color:#ccc; margin-bottom: 20px;"></div><div id="dialog-buttons" style="display:flex; gap:10px; margin-top:20px;"></div></div></div>
 
 <script>
+// ==========================================
+// CONFIGURACIÓN DE CREDENCIALES CLOUD (GOOGLE)
+// ==========================================
+const GOOGLE_CLIENT_ID = "TU_CLIENT_ID_DE_GOOGLE.apps.googleusercontent.com";
+const GOOGLE_API_KEY = "TU_LLAVE_DE_API_SECRETA";
+const GOOGLE_DISCOVERY_DOCS = [
+    "https://sheets.googleapis.com/$discovery/rest?version=v4", 
+    "https://www.googleapis.com/discovery/v1/apis/drive/v3/rest"
+];
+const GOOGLE_SCOPES = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file";
+
+let tokenClient;
+let gapiInited = false;
+let gisInited = false;
+
+// VARIABLES DE ESTADO LOCAL DE LA APP
 let secure_pin_hash = localStorage.getItem('copo_pin_hash') || "03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4";
 let movements = JSON.parse(localStorage.getItem('copo_data')) || [];
 let staff = JSON.parse(localStorage.getItem('copo_staff')) || [];
@@ -271,8 +307,8 @@ let virtualProfitBase = parseFloat(localStorage.getItem('copo_virtual_profit')) 
 let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISOString();
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
 
-// CIRUGÍA: Puntero de sesión encapsulado para el hilo asíncrono
 let currentUploadContext = { id: null, staffIdx: null };
+window.pendingAction = null; 
 
 window.onload = function() { 
     applyBusinessIdentity(); 
@@ -282,11 +318,33 @@ window.onload = function() {
     renderStaff(); 
     initManual();
     
-    // CIRUGÍA: Inicializador estricto del listener de archivos (Evita la muerte del puntero en GitHub)
-    document.getElementById('table-file-input').addEventListener('change', function(e) {
-        processTableFile(this);
-    });
+    // Inicializar hilos de Google
+    gapiLoad();
+    gisInit();
 };
+
+// FUNCIONES BASE DE LA API DE GOOGLE CLOUD
+function gapiLoad() { gapi.load('client', initializeGapiClient); }
+async function initializeGapiClient() {
+    await gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: GOOGLE_DISCOVERY_DOCS });
+    gapiInited = true;
+}
+function gisInit() {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID, scope: GOOGLE_SCOPES, callback: '', 
+    });
+    gisInited = true;
+}
+function handleAuthClick() {
+    tokenClient.callback = async (resp) => {
+        if (resp.error !== undefined) { throw (resp); }
+        document.getElementById('cloud-status').innerText = "Conectado";
+        document.getElementById('cloud-status').className = "status-badge status-connected";
+        showMsg("¡Enlazado con éxito a Google Cloud! Listo para subir datos.");
+    };
+    if (gapi.client.getToken() === null) { tokenClient.requestAccessToken({prompt: 'consent'}); } 
+    else { tokenClient.requestAccessToken({prompt: ''}); }
+}
 
 let manualTimer;
 function initManual() {
@@ -318,34 +376,16 @@ function applyBusinessIdentity() {
     loginArea.innerHTML = bizData.logo ? `<img src="${bizData.logo}" class="logo-login" onclick="zoomImage('${bizData.logo}')">` : `<div class="logo-small" style="margin-bottom:20px;">${bizData.name}</div>`;
 }
 
-function compressImage(file, callback) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800;
-            let width = img.width;
-            let height = img.height;
-            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-            canvas.width = width; canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            callback(canvas.toDataURL('image/jpeg', 0.7));
-        };
-    };
-}
-
 function updateBusinessLogo(input) { 
     const file = input.files[0]; 
     if (file) { 
-        compressImage(file, (base64) => {
-            bizData.logo = base64; 
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            bizData.logo = e.target.result;
             localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); 
             applyBusinessIdentity();
-        });
+        };
     } 
 }
 
@@ -404,7 +444,6 @@ function getFormatedTime(h) { const totalMin = Math.round(h * 60); return `${Mat
 function formatVisual(num, decimals = 0) { 
     const privacy = document.getElementById('privacy-switch')?.checked;
     if (privacy) return "****";
-    
     let fixed = Number(num || 0).toFixed(decimals);
     let parts = fixed.split('.');
     parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -416,17 +455,11 @@ function cleanAmount(val) { return parseFloat(val.toString().replace(/\./g, "").
 function updateUI() {
     const body = document.getElementById('history-body'); body.innerHTML = "";
     let tin = 0, tout = 0, mBank = 0, mCash = 0;
-    
     movements.sort((x, y) => new Date(x.date) - new Date(y.date));
 
-    let lastCapEfectivo = null;
-    let lastCapBanco = null;
-    
+    let lastCapEfectivo = null, lastCapBanco = null;
     movements.forEach(m => {
-        if(m.type === 'CAP_BASE') {
-            if(m.method === 'EFECTIVO') lastCapEfectivo = m;
-            else lastCapBanco = m;
-        }
+        if(m.type === 'CAP_BASE') { if(m.method === 'EFECTIVO') lastCapEfectivo = m; else lastCapBanco = m; }
     });
 
     mCash = lastCapEfectivo ? lastCapEfectivo.amount : 0;
@@ -434,10 +467,8 @@ function updateUI() {
 
     movements.forEach(m => {
         if (m.date > lastResetDate && !m.historical) { 
-            if (m.type === 'IN') tin += m.amount; 
-            else if(m.type === 'OUT') tout += m.amount; 
+            if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; 
         }
-
         let isAfterCap = false;
         if(m.method === 'EFECTIVO' && lastCapEfectivo && m.date > lastCapEfectivo.date) isAfterCap = true;
         if(m.method !== 'EFECTIVO' && lastCapBanco && m.date > lastCapBanco.date) isAfterCap = true;
@@ -445,9 +476,7 @@ function updateUI() {
         if((!lastCapEfectivo && m.method === 'EFECTIVO') || (!lastCapBanco && m.method !== 'EFECTIVO') || isAfterCap) {
             if(m.type !== 'CAP_BASE') {
                 let effect = (m.type === 'IN' || m.type === 'ADJ_IN') ? m.amount : -m.amount;
-                if (!m.historical) { 
-                    if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; 
-                }
+                if (!m.historical) { if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; }
             }
         }
     });
@@ -477,93 +506,56 @@ function updateUI() {
     document.getElementById('net-profit').innerText = "₡" + formatVisual((tin - tout) + virtualProfitBase);
 }
 
-// CIRUGÍA: Disparador sella el contexto en un objeto inmune para recuperarlo con seguridad total posterior
 function triggerFileSelect(id, staffIdx = null) { 
-    currentUploadContext.id = id;
-    currentUploadContext.staffIdx = staffIdx;
-    
+    currentUploadContext.id = id; currentUploadContext.staffIdx = staffIdx;
     const fileInput = document.getElementById('table-file-input');
-    fileInput.value = ""; 
-    fileInput.click(); 
+    fileInput.value = ""; fileInput.click(); 
 }
 
-// CIRUGÍA: El procesador lee el contexto cerrado de la memoria volátil protegiendo el flujo en servidores productivos
 function processTableFile(input) {
     const file = input.files[0];
     const targetMoveId = currentUploadContext.id;
     const targetStaffIdx = currentUploadContext.staffIdx;
 
     if (file && targetMoveId !== null) {
-        compressImage(file, (dataUrl) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (e) => {
+            let dataUrl = e.target.result;
             if (targetStaffIdx !== null) {
                 const sIdx = targetStaffIdx;
                 const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === targetMoveId);
-                if (shiftIdx !== -1) { 
-                    staff[sIdx].shifts[shiftIdx].img = dataUrl; 
-                    saveStaff(); 
-                    closeModal('history-modal'); 
-                    openStaffHistory(sIdx); 
-                }
+                if (shiftIdx !== -1) { staff[sIdx].shifts[shiftIdx].img = dataUrl; saveStaff(); closeModal('history-modal'); openStaffHistory(sIdx); }
             } else {
                 const mIdx = movements.findIndex(m => m.id === targetMoveId);
-                if (mIdx !== -1) { 
-                    movements[mIdx].img = dataUrl; 
-                    localStorage.setItem('copo_data', JSON.stringify(movements)); 
-                    updateUI(); 
-                }
+                if (mIdx !== -1) { movements[mIdx].img = dataUrl; localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }
             }
-        });
+        };
     }
-    // Reseteo limpio de seguridad
     currentUploadContext = { id: null, staffIdx: null };
     input.value = ""; 
 }
 
-// CIRUGÍA: Función corporativa para exportar todo el ecosistema (Incluye fotos Base64 intactas)
 function exportDataBackup() {
     const backupPackage = {
-        version: "6.2",
-        exportDate: new Date().toISOString(),
-        copo_pin_hash: secure_pin_hash,
-        copo_data: movements,
-        copo_staff: staff,
-        copo_cierres: cierres,
-        copo_trash: trashMovements,
-        copo_virtual_profit: virtualProfitBase,
-        copo_last_reset: lastResetDate,
-        copo_biz_data: bizData
+        version: "7.0", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, copo_biz_data: bizData
     };
-
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
-    
-    // Nombre amigable y transparente para el comerciante de Cartago
-    const fechaLegible = new Date().toISOString().slice(0,10);
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `Respaldo_Contable_CoPo_${fechaLegible}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-    showMsg("Copia de seguridad exportada con éxito. Guarde el archivo en un lugar seguro.");
+    downloadAnchor.setAttribute("download", `Respaldo_Contable_CoPo_${new Date().toISOString().slice(0,10)}.json`);
+    document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+    showMsg("Copia de seguridad exportada con éxito.");
 }
 
-// CIRUGÍA: Absorbe el archivo JSON, valida su integridad y levanta el negocio de inmediato
 function importDataBackup(input) {
-    const file = input.files[0];
-    if (!file) return;
-
+    const file = input.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const importedPackage = JSON.parse(e.target.result);
-            
-            // Verificación de llaves obligatorias del ecosistema CoPo
-            if (!importedPackage.copo_data || !importedPackage.copo_pin_hash || !importedPackage.copo_staff) {
-                return showMsg("Error: El archivo seleccionado no es un respaldo válido de Gestión Total.");
-            }
-
+            if (!importedPackage.copo_data || !importedPackage.copo_pin_hash || !importedPackage.copo_staff) { return showMsg("Error: El archivo seleccionado no es un respaldo válido de Gestión Total."); }
             showConfirm("¿Está seguro de restaurar esta copia de seguridad? Esto reemplazará los datos actuales por completo.", () => {
-                // Seteo masivo en el motor físico LocalStorage
                 localStorage.setItem('copo_pin_hash', importedPackage.copo_pin_hash);
                 localStorage.setItem('copo_data', JSON.stringify(importedPackage.copo_data));
                 localStorage.setItem('copo_staff', JSON.stringify(importedPackage.copo_staff));
@@ -573,25 +565,10 @@ function importDataBackup(input) {
                 localStorage.setItem('copo_last_reset', importedPackage.copo_last_reset || new Date(0).toISOString());
                 localStorage.setItem('copo_biz_data', JSON.stringify(importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" }));
 
-                // Recarga forzada de memoria viva
-                secure_pin_hash = importedPackage.copo_pin_hash;
-                movements = importedPackage.copo_data;
-                staff = importedPackage.copo_staff;
-                cierres = importedPackage.copo_cierres || [];
-                trashMovements = importedPackage.copo_trash || [];
-                virtualProfitBase = parseFloat(importedPackage.copo_virtual_profit || 0);
-                lastResetDate = importedPackage.copo_last_reset || new Date(0).toISOString();
-                bizData = importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" };
-
-                applyBusinessIdentity();
-                updateUI();
-                renderStaff();
-                showMsg("¡Restauración Completa! Todos los datos, fotos y planillas se cargaron con éxito.");
+                secure_pin_hash = importedPackage.copo_pin_hash; movements = importedPackage.copo_data; staff = importedPackage.copo_staff; cierres = importedPackage.copo_cierres || []; trashMovements = importedPackage.copo_trash || []; virtualProfitBase = parseFloat(importedPackage.copo_virtual_profit || 0); lastResetDate = importedPackage.copo_last_reset || new Date(0).toISOString(); bizData = importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" };
+                applyBusinessIdentity(); updateUI(); renderStaff(); showMsg("¡Restauración Completa!");
             });
-
-        } catch (err) {
-            showMsg("Error crítico al procesar el archivo de copia de seguridad.");
-        }
+        } catch (err) { showMsg("Error crítico al procesar el archivo."); }
         input.value = "";
     };
     reader.readAsText(file);
@@ -599,9 +576,7 @@ function importDataBackup(input) {
 
 function filtrarMovimientos() {
     const v = document.getElementById('buscador').value.toLowerCase();
-    Array.from(document.getElementById('history-body').rows).forEach(r => {
-        r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none";
-    });
+    Array.from(document.getElementById('history-body').rows).forEach(r => { r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none"; });
 }
 
 function renderStaff() {
@@ -641,8 +616,7 @@ function deleteStaffMovement(staffIndex, moveId) {
 }
 
 function addHours(i) { 
-    const s = staff[i], inV = document.getElementById(`dt-in-${i}`).value, outV = document.getElementById(`dt-out-${i}`).value; 
-    if(!inV || !outV) return showMsg("Faltan horas"); 
+    const s = staff[i], inV = document.getElementById(`dt-in-${i}`).value, outV = document.getElementById(`dt-out-${i}`).value; if(!inV || !outV) return showMsg("Faltan horas"); 
     const diff = (new Date(outV) - new Date(inV)) / 3600000; if(diff <= 0) return showMsg("Error"); 
     let ord = (s.useExtras && diff > 8) ? 8 : diff; let ext = (s.useExtras && diff > 8) ? diff - 8 : 0; 
     let earned = (ord * s.rate) + (ext * s.rate * 1.5); s.debt += earned; 
@@ -651,23 +625,20 @@ function addHours(i) {
 }
 
 function giveAdvance(i) { 
-    const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value); const dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto'; 
-    if(amt <= 0) return showMsg("Monto inválido"); staff[i].debt -= amt; 
+    const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value); const dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto'; if(amt <= 0) return showMsg("Monto inválido"); staff[i].debt -= amt; 
     staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -amt, type: 'ADVANCE', desc: dsc, img: "" }); 
     saveStaff(); renderStaff(); document.getElementById(`adv-amt-${i}`).value = ""; document.getElementById(`adv-desc-${i}`).value = "";
 }
 
 function resetDebt(i) { 
-    let tOrd = 0, tExt = 0, sueldoPuro = 0;
-    staff[i].shifts.forEach(sh => { if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; } if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; } }); 
+    let tOrd = 0, tExt = 0, sueldoPuro = 0; staff[i].shifts.forEach(sh => { if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; } if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; } }); 
     if(sueldoPuro <= 0) return showMsg("No hay sueldo pendiente.");
     let detail = `Sueldo: ${getFormatedTime(tOrd)} ord` + (tExt > 0 ? ` + ${getFormatedTime(tExt)} ext` : '');
     showConfirm(`¿Liquidar sueldo de ₡${formatVisual(sueldoPuro)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "" }); staff[i].debt -= sueldoPuro; saveStaff(); renderStaff(); }); 
 }
 
 function payAguinaldoOnly(i) {
-    let aguinaldoTotal = 0; staff[i].shifts.forEach(sh => { if(sh.type === 'AGUINALDO' || sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned; });
-    if(aguinaldoTotal <= 0) return showMsg("No hay aguinaldo pendiente.");
+    let aguinaldoTotal = 0; staff[i].shifts.forEach(sh => { if(sh.type === 'AGUINALDO' || sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned; }); if(aguinaldoTotal <= 0) return showMsg("No hay aguinaldo pendiente.");
     showConfirm(`¿Pagar aguinaldo de ₡${formatVisual(aguinaldoTotal)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -aguinaldoTotal, type: 'PAYMENT_AGUINALDO', img: "" }); staff[i].debt -= aguinaldoTotal; saveStaff(); renderStaff(); });
 }
 
@@ -681,106 +652,59 @@ function calcAguinaldo833(i) {
 }
 
 function addAguinaldoToStaff(i, monto, f, t) {
-    if(monto <= 0) return showMsg("Monto en 0"); staff[i].debt += monto;
-    const desc = `Aguinaldo del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
-    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: monto, type: 'AGUINALDO', desc: desc, img: "" });
-    saveStaff(); renderStaff(); closeModal('history-modal');
+    if(monto <= 0) return showMsg("Monto en 0"); staff[i].debt += monto; const desc = `Aguinaldo del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
+    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: monto, type: 'AGUINALDO', desc: desc, img: "" }); saveStaff(); renderStaff(); closeModal('history-modal');
 }
 
 function openModal(t, c) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerHTML = c; document.getElementById('history-modal').style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-function zoomImage(s, id = null, staffIdx = null) { 
-    currentZoomedId = id;
-    currentZoomedStaffIdx = staffIdx;
-    document.getElementById('imgZoom').src = s;
-    document.getElementById('imgModal').style.display = 'flex'; 
-}
+function zoomImage(s, id = null, staffIdx = null) { currentZoomedId = id; currentZoomedStaffIdx = staffIdx; document.getElementById('imgZoom').src = s; document.getElementById('imgModal').style.display = 'flex'; }
 
 function deleteCurrentZoomedImage() {
     if (!currentZoomedId) return;
     showConfirm("¿Deseas eliminar la foto de este registro permanentemente?", () => {
         if (currentZoomedStaffIdx !== null) {
-            const sIdx = currentZoomedStaffIdx;
-            const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === currentZoomedId);
-            if (shiftIdx !== -1) {
-                staff[sIdx].shifts[shiftIdx].img = "";
-                saveStaff();
-                renderStaff();
-            }
+            const sIdx = currentZoomedStaffIdx; const shiftIdx = staff[sIdx].shifts.findIndex(sh => sh.id === currentZoomedId);
+            if (shiftIdx !== -1) { staff[sIdx].shifts[shiftIdx].img = ""; saveStaff(); renderStaff(); }
         } else {
             const mIdx = movements.findIndex(m => m.id === currentZoomedId);
-            if (mIdx !== -1) {
-                movements[mIdx].img = "";
-                localStorage.setItem('copo_data', JSON.stringify(movements));
-                updateUI();
-            }
+            if (mIdx !== -1) { movements[mIdx].img = ""; localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); }
         }
-        closeModal('imgModal');
-        closeModal('history-modal');
-        showMsg("Foto eliminada con éxito.");
-        currentZoomedId = null; currentZoomedStaffIdx = null;
+        closeModal('imgModal'); closeModal('history-modal'); showMsg("Foto de registro eliminada."); currentZoomedId = null; currentZoomedStaffIdx = null;
     });
 }
 
 function showMsg(msg) { document.getElementById('dialog-title').innerText = "Aviso"; document.getElementById('dialog-msg').innerText = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" onclick="closeDialog()">OK</button>`; document.getElementById('custom-dialog').style.display = 'flex'; }
-function showConfirm(msg, onConfirm) { document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; }
+
+function showConfirm(msg, onConfirm) { 
+    document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; 
+    document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; 
+    window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; 
+}
 function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
 
 function openTrashModal() {
     if (trashMovements.length === 0) return showMsg("La papelera de reciclaje está completamente vacía.");
-    
-    let html = `<div class="history-wrapper" style="max-height: 350px;"><table>
-        <thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:right">Monto</th><th style="text-align:right">Acciones</th></tr></thead><tbody>`;
-        
+    let html = `<div class="history-wrapper" style="max-height: 350px;"><table><thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:right">Monto</th><th style="text-align:right">Acciones</th></tr></thead><tbody>`;
     trashMovements.forEach(m => {
-        let isCap = m.type === 'CAP_BASE';
-        let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE') ? m.amount : -m.amount;
+        let isCap = m.type === 'CAP_BASE'; let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE') ? m.amount : -m.amount;
         let colorClass = isCap ? 'cash-color' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit'));
-        
-        html += `<tr>
-            <td style="white-space:nowrap; font-size:0.75rem;">${formatDateSlash(m.date.split('T')[0])}</td>
-            <td style="font-size:0.75rem;">${m.desc}<br><small>${m.method}</small></td>
-            <td class="${colorClass}" style="text-align:right; font-weight:bold; font-size:0.75rem;">===₡${formatVisual(effect)}</td>
-            <td style="text-align:right; white-space:nowrap;">
-                <button class="btn-icon" style="color:#25D366; margin-right:5px;" onclick="restoreMovement(${m.id})"><i class="fas fa-undo-alt"></i></button>
-                <button class="btn-icon" style="color:#ff3b3b" onclick="permanentlyDeleteMovement(${m.id})"><i class="fas fa-times-circle"></i></button>
-            </td>
-        </tr>`;
+        html += `<tr><td>${formatDateSlash(m.date.split('T')[0])}</td><td>${m.desc}<br><small>${m.method}</small></td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td><td style="text-align:right; white-space:nowrap;"><button class="btn-icon" style="color:#25D366; margin-right:5px;" onclick="restoreMovement(${m.id})"><i class="fas fa-undo-alt"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="permanentlyDeleteMovement(${m.id})"><i class="fas fa-times-circle"></i></button></td></tr>`;
     });
-    
-    html += `</tbody></table></div>`;
-    openModal("Papelera de Reciclaje", html);
+    openModal("Papelera de Reciclaje", html + "</tbody></table></div>");
 }
 
 function restoreMovement(id) {
     const idx = trashMovements.findIndex(m => m.id === id);
-    if (idx !== -1) {
-        const item = trashMovements.splice(idx, 1)[0];
-        movements.unshift(item);
-        localStorage.setItem('copo_data', JSON.stringify(movements));
-        localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
-        updateUI();
-        closeModal('history-modal');
-        showMsg("Movimiento restaurado en la línea de tiempo.");
-    }
+    if (idx !== -1) { const item = trashMovements.splice(idx, 1)[0]; movements.unshift(item); localStorage.setItem('copo_data', JSON.stringify(movements)); localStorage.setItem('copo_trash', JSON.stringify(trashMovements)); updateUI(); closeModal('history-modal'); }
 }
-
-function permanentlyDeleteMovement(id) {
-    showConfirm("¿Deseas eliminar permanentemente este registro? No se podrá recuperar jamás.", () => {
-        trashMovements = trashMovements.filter(m => m.id !== id);
-        localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
-        closeModal('history-modal');
-        showMsg("Registro destruido permanentemente.");
-    });
-}
+function permanentlyDeleteMovement(id) { showConfirm("¿Deseas eliminar permanentemente este registro?", () => { trashMovements = trashMovements.filter(m => m.id !== id); localStorage.setItem('copo_trash', JSON.stringify(trashMovements)); closeModal('history-modal'); }); }
 
 function formatCurrencyInput(input) { 
-    let value = input.value.replace(/[^0-9,]/g, ""); 
-    const parts = value.split(','); 
-    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); 
-    input.value = parts.length > 1 ? parts[0] + ',' + parts[1].slice(0,2) : parts[0]; 
+    let value = input.value.replace(/[^0-9,]/g, ""); const parts = value.split(','); 
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, "."); input.value = parts.length > 1 ? parts[0] + ',' + parts[1].slice(0,2) : parts[0]; 
 }
 
 function saveStaff() { localStorage.setItem('copo_staff', JSON.stringify(staff)); }
@@ -793,229 +717,89 @@ function openAdjModal() { if(!document.getElementById('amount').value) return sh
 function closeAdjModal() { document.getElementById('adj-modal').style.display = 'none'; }
 
 function executeEntry(m, ot = null) { 
-    const t = ot || pendingType; 
-    const dsc = document.getElementById('desc').value || (t === 'CAP_BASE' ? 'Saldo Real Fijado' : 'S/D');
+    const t = ot || pendingType; const dsc = document.getElementById('desc').value || (t === 'CAP_BASE' ? 'Saldo Real Fijado' : 'S/D');
     movements.unshift({ id: Date.now(), type: t, amount: cleanAmount(document.getElementById('amount').value), desc: dsc, method: m, date: new Date().toISOString(), img: "" }); 
     localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
 
-function deleteMovement(id) { 
-    showConfirm("¿Deseas enviar este movimiento a la papelera de reciclaje?", () => { 
-        const matchIdx = movements.findIndex(m => m.id === id);
-        if (matchIdx !== -1) {
-            const trashedItem = movements.splice(matchIdx, 1)[0];
-            trashMovements.unshift(trashedItem);
-            localStorage.setItem('copo_data', JSON.stringify(movements));
-            localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
-            updateUI();
-        }
-    }); 
-}
-
 function editMovement(id) {
     const m = movements.find(x => x.id === id); if(!m) return;
-    const d = new Date(m.date);
-    const localISO = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-
-    const isAdj = m.type.startsWith('ADJ_') || m.type === 'CAP_BASE';
+    const d = new Date(m.date); const localISO = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     const isMuro = m.type === 'CAP_BASE';
+    let html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><label class="input-label">Monto</label><input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal"><label class="input-label">Detalle</label><input type="text" id="edit-dsc" value="${m.desc}">`;
 
-    let html = `
-        <div class="form-box" style="background:transparent; border:none; padding:0;">
-            <label class="input-label">Monto</label>
-            <input type="text" id="edit-amt" value="${formatVisual(m.amount)}" oninput="formatCurrencyInput(this)" inputmode="decimal">
-            <label class="input-label">Detalle</label>
-            <input type="text" id="edit-dsc" value="${m.desc}">`;
-
-    if (isMuro) {
-        html += `
-            <input type="hidden" id="edit-date" value="${localISO}">
-            <input type="hidden" id="temp-method" value="${m.method}">
-            <input type="hidden" id="temp-dir" value="IN">
-            <input type="hidden" id="is-adj-orig" value="true">
-            <input type="hidden" id="orig-type" value="CAP_BASE">`;
-    } else {
-        html += `
-            <label class="input-label">Fecha y Hora</label>
-            <input type="datetime-local" id="edit-date" value="${localISO}">
-            
-            <label class="input-label">Método</label>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+    if (isMuro) { html += `<input type="hidden" id="edit-date" value="${localISO}"><input type="hidden" id="temp-method" value="${m.method}"><input type="hidden" id="temp-dir" value="IN"><input type="hidden" id="is-adj-orig" value="true"><input type="hidden" id="orig-type" value="CAP_BASE">`; } 
+    else {
+        html += `<label class="input-label">Fecha y Hora</label><input type="datetime-local" id="edit-date" value="${localISO}"><label class="input-label">Método</label><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
                 <button class="btn ${m.method === 'EFECTIVO' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='EFECTIVO'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💵 EFECTIVO</button>
                 <button class="btn ${m.method === 'TARJETA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TARJETA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💳 TARJETA</button>
                 <button class="btn ${m.method === 'SIMPE' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='SIMPE'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">📲 SIMPE</button>
                 <button class="btn ${m.method === 'TRANSFERENCIA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TRANSFERENCIA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">🏦 TRANSF.</button>
-            </div>
-            <input type="hidden" id="temp-method" value="${m.method}">
-            
-            <label class="input-label">Tipo de Movimiento</label>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
+            </div><input type="hidden" id="temp-method" value="${m.method}"><label class="input-label">Tipo de Movimiento</label><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
                 <button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button>
                 <button class="btn ${m.type === 'OUT' || m.type === 'ADJ_OUT' ? 'btn-out' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='OUT'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📤 EGRESO / SALIDA</button>
-            </div>
-            <input type="hidden" id="temp-dir" value="${m.type.includes('IN') ? 'IN' : 'OUT'}">
-            <input type="hidden" id="is-adj-orig" value="${isAdj ? 'true' : 'false'}">
-            <input type="hidden" id="orig-type" value="${m.type}">`;
+            </div><input type="hidden" id="temp-dir" value="${m.type.includes('IN') ? 'IN' : 'OUT'}"><input type="hidden" id="is-adj-orig" value="${m.type.startsWith('ADJ_') ? 'true' : 'false'}"><input type="hidden" id="orig-type" value="${m.type}">`;
     }
-
-    html += `
-            <button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button>
-        </div>`;
-    openModal("Editar Registro", html);
+    openModal("Editar Registro", html + `<button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button></div>`);
 }
 
-function updateEditMethodUI(btn) {
-    const container = btn.parentElement;
-    container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in'); b.classList.add('btn-adj'); });
-    btn.classList.remove('btn-adj'); btn.classList.add('btn-in');
-}
-
-function updateEditTypeUI(btn) {
-    const container = btn.parentElement;
-    container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in', 'btn-out'); b.classList.add('btn-adj'); });
-    if(btn.innerText.includes("INGRESO")) btn.classList.add('btn-in'); else btn.classList.add('btn-out');
-}
+function updateEditMethodUI(btn) { const container = btn.parentElement; container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in'); b.classList.add('btn-adj'); }); btn.classList.remove('btn-adj'); btn.classList.add('btn-in'); }
+function updateEditTypeUI(btn) { const container = btn.parentElement; container.querySelectorAll('button').forEach(b => { b.classList.remove('btn-in', 'btn-out'); b.classList.add('btn-adj'); }); if(btn.innerText.includes("INGRESO")) btn.classList.add('btn-in'); else btn.classList.add('btn-out'); }
 
 function saveEditMovement(id) {
     const mIdx = movements.findIndex(x => x.id === id);
     if(mIdx !== -1) {
-        const newAmt = cleanAmount(document.getElementById('edit-amt').value);
-        const newDsc = document.getElementById('edit-dsc').value;
-        const newMethod = document.getElementById('temp-method').value;
-        const newDir = document.getElementById('temp-dir').value;
-        const isAdjOrig = document.getElementById('is-adj-orig').value === 'true';
-        const origType = document.getElementById('orig-type').value;
+        const newAmt = cleanAmount(document.getElementById('edit-amt').value), newDsc = document.getElementById('edit-dsc').value;
+        const newMethod = document.getElementById('temp-method').value, newDir = document.getElementById('temp-dir').value;
+        const isAdjOrig = document.getElementById('is-adj-orig').value === 'true', origType = document.getElementById('orig-type').value;
 
         let newType = newDir;
-        if (origType === 'CAP_BASE') {
-            newType = 'CAP_BASE';
-        } else if (isAdjOrig) {
-            newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT';
-        }
+        if (origType === 'CAP_BASE') { newType = 'CAP_BASE'; } else if (isAdjOrig) { newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT'; }
 
-        movements[mIdx].amount = newAmt;
-        movements[mIdx].desc = newDsc;
-        movements[mIdx].method = newMethod;
-        movements[mIdx].type = newType;
-
-        if (origType !== 'CAP_BASE') {
-            movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString();
-        }
-        
-        localStorage.setItem('copo_data', JSON.stringify(movements)); 
-        updateUI(); 
-        closeModal('history-modal'); 
-        showMsg("Cambios aplicados y saldos sincronizados."); 
+        movements[mIdx].amount = newAmt; movements[mIdx].desc = newDsc; movements[mIdx].method = newMethod; movements[mIdx].type = newType;
+        if (origType !== 'CAP_BASE') { movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString(); }
+        localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Cambios aplicados."); 
     }
 }
 
 function addStaff() { 
     const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value); if(!n || !r) return; 
-    staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true }); saveStaff(); renderStaff(); 
-    document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; 
+    staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true }); saveStaff(); renderStaff(); document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; 
 }
 function deleteStaff(i) { showConfirm("¿Eliminar?", () => { staff.splice(i,1); saveStaff(); renderStaff(); }); }
-function updateStaffRate(i) { const html = `<div style="text-align:center;"><p>Nueva tarifa para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Nueva Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR</button></div>`; openModal("Ajustar Precio Hora", html); }
+UX_RATE = (i) => openModal("Ajustar Tarifa", `<div style="text-align:center;"><p>Nueva tarifa para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR</button></div>`);
+function updateStaffRate(i) { UX_RATE(i); }
 function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val > 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); } }
 
 function checkPeriodStaff(i) { openModal(`Consulta: ${staff[i].name}`, `<div style="text-align:left;"><span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">DESDE</span><input type="date" id="p-from" style="margin-bottom:10px;"><span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">HASTA</span><input type="date" id="p-to" style="margin-bottom:15px;"><button class="btn btn-adj" onclick="calcPeriodStaff(${i})">CALCULAR</button><div id="p-res"></div></div>`); }
-
 function calcPeriodStaff(i) { const f = new Date(document.getElementById('p-from').value + "T00:00:00").getTime(), t = new Date(document.getElementById('p-to').value + "T23:59:59").getTime(); let m = 0; staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t) m += sh.earned; }); document.getElementById('p-res').innerHTML = `<hr><h3>₡${formatVisual(m)}</h3>`; }
 function showTab(t) { document.getElementById('tab-contabilidad').style.display = t === 'contabilidad' ? 'block' : 'none'; document.getElementById('tab-planilla').style.display = t === 'planilla' ? 'block' : 'none'; document.getElementById('tab-configuracion').style.display = t === 'configuracion' ? 'block' : 'none'; document.getElementById('btn-tab-contabilidad').classList.toggle('active', t === 'contabilidad'); document.getElementById('btn-tab-planilla').classList.toggle('active', t === 'planilla'); }
 
-function confirmFullReset() {
-    const adv = `<div class="warning-box-full"><i class="fas fa-exclamation-triangle" style="font-size: 2.5rem; margin-bottom: 15px; color:#ff3b3b;"></i><br><b style="font-size: 1.2rem;">¡ATENCIÓN!</b><br><br>Esta acción borrará permanentemente todo.<br><br><b>¿Realmente desea eliminar TODO el sistema?</b></div>`;
-    showConfirm(adv, () => {
-        const pinHtml = `<div style="text-align:center;"><p style="color:#ff3b3b; font-weight:bold;">Ingrese su PIN:</p><input type="password" id="reset-pin-confirm" class="pin-input" style="width:150px; margin: 15px auto;" maxlength="4" inputmode="numeric" placeholder="****"><button class="btn btn-out" onclick="executeFinalReset()">BORRAR DEFINITIVAMENTE</button></div>`;
-        openModal("Security adicional", pinHtml);
-    });
-}
-
-async function executeFinalReset() {
-    const pinInput = document.getElementById('reset-pin-confirm').value; const hashed = await hashPin(pinInput);
-    if (hashed === secure_pin_hash) { localStorage.clear(); location.reload(); } else { showMsg("PIN Incorrecto."); closeModal('history-modal'); }
-}
-
 function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
-
 function openCierreHistory() { 
     let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th style="text-align:center">Detalle</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`; cierres.forEach(c => { h += `<tr><td>${getFormatedDate(c.date)}</td><td style="text-align:center"><button class="btn-ver-cierre" onclick="verDetalleCierre(${c.id})">VER</button></td><td class="profit" style="text-align:right">₡${formatVisual(c.totalNeto)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`; }); 
     openModal("Historial de Cierres", h + "</tbody></table></div>"); 
 }
-
-function verDetalleCierre(id) {
-    const c = cierres.find(x => x.id === id); if(!c) return;
-    const html = `<div style="text-align:center; padding:10px;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Fecha Registro:</b><br> <small>${getFormatedDate(c.date)}</small></p><p><b>Periodo:</b><br> <small>${c.note}</small></p><hr style="border:1px solid #222; margin:15px 0;">${c.egresos ? `<p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(c.egresos, 2)}</p>` : ''}${c.ingresos ? `<p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(c.ingresos, 2)}</p>` : ''}<h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(c.totalNeto, 2)}</h3></div></div>`;
-    openModal("Detalle de Cierre", html);
-}
-
+function verDetalleCierre(id) { const c = cierres.find(x => x.id === id); if(!c) return; openModal("Detalle", `<div style="background:#000; padding:15px; border-radius:10px;"><p><b>Periodo:</b> <small>${c.note}</small></p><hr style="border:1px solid #222;"><h3 class="adj-color">Balance: ₡${formatVisual(c.totalNeto, 2)}</h3></div>`); }
 function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); openCierreHistory(); }); }
-
-function resetPeriodProfit() { 
-    showConfirm("¿Deseas reiniciar las ganancias?", () => { 
-        lastResetDate = new Date().toISOString(); 
-        virtualProfitBase = 0;
-        localStorage.setItem('copo_last_reset', lastResetDate); 
-        localStorage.setItem('copo_virtual_profit', 0);
-        updateUI(); 
-    }); 
-}
+function resetPeriodProfit() { showConfirm("¿Deseas reiniciar las ganancias?", () => { lastResetDate = new Date().toISOString(); virtualProfitBase = 0; localStorage.setItem('copo_last_reset', lastResetDate); localStorage.setItem('copo_virtual_profit', 0); updateUI(); }); }
 
 function searchInPeriod() { 
-    const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value; 
-    const kw = document.getElementById('c-keyword').value.toLowerCase().trim();
-    const incAdj = document.getElementById('include-adj-report').checked;
-    if(!f || !t) return showMsg("Faltan fechas"); 
-    
+    const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value, kw = document.getElementById('c-keyword').value.toLowerCase().trim(), incAdj = document.getElementById('include-adj-report').checked; if(!f || !t) return showMsg("Faltan fechas"); 
     let i=0, e=0, matches = []; const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
     movements.forEach(m => { 
-        const inDate = m.date >= fT && m.date <= tT; const inKeyword = kw === "" || m.desc.toLowerCase().includes(kw) || m.method.toLowerCase().includes(kw);
-        const isNormal = (m.type === 'IN' || m.type === 'OUT');
-        const isAdj = incAdj && (m.type === 'ADJ_IN' || m.type === 'ADJ_OUT');
-        if(inDate && inKeyword && (isNormal || isAdj)) { 
-            if(m.type === 'IN' || m.type === 'ADJ_IN') i += m.amount; else if(m.type === 'OUT' || m.type === 'ADJ_OUT') e += m.amount;
-            matches.push(m);
+        if(m.date >= fT && m.date <= tT && (kw === "" || m.desc.toLowerCase().includes(kw))) { 
+            if((m.type==='IN' || m.type==='OUT') || (incAdj && m.type.startsWith('ADJ'))) { if(m.type.includes('IN')) i+=m.amount; else e+=m.amount; matches.push(m); }
         } 
     }); 
-    const ganancia = i - e; const notaPeriodo = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` - Filtro: "${kw}"` : "");
-    let tableHtml = `<div class="history-wrapper" style="margin-top:15px; max-height:200px;"><table><tbody>`;
-    matches.forEach(m => {
-        let color = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
-        tableHtml += `<tr><td style="font-size:0.7rem;">${formatDateSlash(m.date.split('T')[0])}</td><td style="font-size:0.7rem;">${m.desc}</td><td class="${color}" style="text-align:right; font-weight:bold; font-size:0.7rem;">₡${formatVisual(m.amount)}</td></tr>`;
-    });
-    tableHtml += `</tbody></table></div>`;
-    
-    openModal("Detalle de Cierre", `<div style="text-align:center;"><div style="background:#000; padding:15px; border-radius:10px; text-align:left;"><p><b>Periodo:</b><br> <small>${notaPeriodo}</small></p><hr style="border:1px solid #333; margin:15px 0;"><p class="expense" style="font-weight:bold;">Total Salidas: ₡${formatVisual(e, 2)}</p><p class="profit" style="font-weight:bold;">Total Entradas: ₡${formatVisual(i, 2)}</p><h3 class="adj-color" style="margin-top:20px; text-align:center; border: 1px solid #0026ff; padding: 10px; border-radius: 8px;">Balance Reporte: ₡${formatVisual(ganancia, 2)}</h3>${matches.length > 0 ? tableHtml : '<p style="text-align:center; color:#555; margin-top:10px;">Sin movimientos encontrados.</p>'}</div><button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit(${ganancia}, '${f}', '${t}')">SUMAR GANANCIA AL CUADRO PRINCIPAL</button><button class="btn btn-adj" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button></div>`); 
+    const ganancia = i - e; openModal("Cierre", `<div style="background:#000; padding:15px; border-radius:10px;"><p>Total Entradas: ₡${formatVisual(i)}</p><p class="expense">Total Salidas: ₡${formatVisual(e)}</p><h3>Neto: ₡${formatVisual(ganancia)}</h3></div><button class="btn btn-in" style="margin-top:10px;" onclick="injectPeriodToDashboardProfit(${ganancia}, '${f}', '${t}')">SUMAR AL CUADRO</button>`); 
 }
+function injectPeriodToDashboardProfit(amt, f, t) { virtualProfitBase += amt; localStorage.setItem('copo_virtual_profit', virtualProfitBase); updateUI(); closeModal('history-modal'); }
 
-function injectPeriodToDashboardProfit(amountToInject, fromDate, toDate) {
-    showConfirm("¿Deseas acumular la ganancia neta exacta de ₡" + formatVisual(amountToInject, 2) + " obtenida desde el " + formatDateSlash(fromDate) + " al cuadro principal?", () => {
-        virtualProfitBase += amountToInject;
-        localStorage.setItem('copo_virtual_profit', virtualProfitBase);
-        updateUI();
-        closeModal('history-modal');
-        showMsg("Monto consolidado perfectamente en el cuadro superior.");
-    });
-}
-
-function saveHistoricalCierre(f, t, total, ing, egr, kw = "") {
-    const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` [Filtro: ${kw}]` : "");
-    showConfirm(`¿Guardar este reporte?`, () => { cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota }); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); });
-}
-
-function openHistoryLoader() { 
-    const html = `<div class="form-box" style="background:transparent; border:none; padding:0;"><input type="date" id="old-date"><input type="text" id="old-amt" placeholder="Monto (₡)" oninput="formatCurrencyInput(this)" inputmode="decimal"><input type="text" id="old-dsc" placeholder="Detalle"><select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select><select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option><option value="TRANSFERENCIA">🏦 TRANSF.</option><option value="TARJETA">💳 TARJETA</option></select><button class="btn btn-adj" onclick="saveOldMove(false)">GUARDAR (HISTORIAL)</button><button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR (AFECTA CAJA)</button><div class="toggle-box" style="margin-top:10px;"><span style="color:#888; font-size:0.75rem;">Afectar Ganancia Neta</span><label class="switch"><input type="checkbox" id="old-affect-profit"><span class="slider"></span></label></div></div>`; 
-    openModal("Carga Histórica", html); 
-}
-
+function openHistoryLoader() { openModal("Carga Histórica", `<div class="form-box" style="background:transparent; border:none; padding:0;"><input type="date" id="old-date"><input type="text" id="old-amt" placeholder="Monto" oninput="formatCurrencyInput(this)"><input type="text" id="old-dsc" placeholder="Detalle"><select id="old-type"><option value="OUT">Egreso</option><option value="IN">Ingreso</option></select><select id="old-method"><option value="EFECTIVO">💵 EFECTIVO</option><option value="SIMPE">📲 SIMPE</option></select><button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR</button></div>`); }
 function saveOldMove(apply) { 
-    const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value; 
-    const t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; 
-    const affectProfit = document.getElementById('old-affect-profit').checked;
-    if(!d || !a || !s) return showMsg("Faltan datos"); 
-    const finalDate = affectProfit ? new Date(new Date(lastResetDate).getTime() + 1000).toISOString() : new Date(d + "T12:00:00").toISOString();
-    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: finalDate, historical: !apply }); 
-    movements.sort((x, y) => new Date(x.date) - new Date(y.date)); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
+    const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value, t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; if(!d || !a || !s) return showMsg("Faltan datos"); 
+    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), img: "" }); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); 
 }
 </script>
 </body>
