@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.0.4 - Edición Nube</title>
+<title>Gestión Total 7.0.5 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -97,7 +97,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.0.4 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.0.5 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -245,7 +245,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.4 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.5 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -308,6 +308,9 @@ let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo
 
 let currentUploadContext = { id: null, staffIdx: null };
 window.pendingAction = null; 
+
+// CIRUGÍA DE CONTROL GLOBAL: Declaramos explícitamente el puntero de flujos para que el sistema sepa qué tipo de botón estás tocando
+let pendingType = 'IN'; 
 
 window.onload = function() { 
     applyBusinessIdentity(); 
@@ -388,7 +391,6 @@ function updateBusinessLogo(input) {
 
 function saveBusinessIdentity() { bizData.name = document.getElementById('biz-name-input').value || "CoPo Admin"; bizData.owner = document.getElementById('owner-name-input').value; localStorage.setItem('copo_biz_data', JSON.stringify(bizData)); applyBusinessIdentity(); showMsg("Guardado."); }
 
-// REPARACIÓN QUIRÚRGICA: Algoritmo de encriptación simplificado de alta velocidad para evitar congelamientos locales
 function hashPin(pin) {
     let hash = 0;
     for (let i = 0; i < pin.length; i++) {
@@ -399,7 +401,6 @@ function hashPin(pin) {
     return hash.toString(16);
 }
 
-// RESTAURACIÓN INTEGRAL DE SEGURIDAD: Reconoce tu clave personalizada guardada en la memoria del navegador
 function validatePin() { 
     const val = document.getElementById('pin').value;
     if(!val) return;
@@ -551,7 +552,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.0.4", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, copo_biz_data: bizData
+        version: "7.0.5", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
@@ -577,7 +578,7 @@ function importDataBackup(input) {
                 localStorage.setItem('copo_virtual_profit', importedPackage.copo_virtual_profit || 0);
                 localStorage.setItem('copo_last_reset', importedPackage.copo_last_reset || new Date(0).toISOString());
                 
-                let bData = importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" };
+                let bData = importedPackage.bizData || { name: "CoPo Admin", owner: "", logo: "" };
                 localStorage.setItem('copo_biz_data', JSON.stringify(bData));
 
                 secure_pin_hash = importedPackage.copo_pin_hash; movements = importedPackage.copo_data; staff = importedPackage.copo_staff; cierres = importedPackage.copo_cierres || []; trashMovements = importedPackage.copo_trash || []; virtualProfitBase = parseFloat(importedPackage.copo_virtual_profit || 0); lastResetDate = importedPackage.copo_last_reset || new Date(0).toISOString(); bizData = bData;
@@ -598,7 +599,6 @@ function filtrarMovimientos() {
     Array.from(document.getElementById('history-body').rows).forEach(r => { r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none"; });
 }
 
-// INYECCIÓN DE SEGURIDAD EN PLANILLA: Asegura el guardado local inmediato
 function saveStaff() { 
     localStorage.setItem('copo_staff', JSON.stringify(staff)); 
 }
@@ -820,7 +820,6 @@ function verDetalleCierre(id) { const c = cierres.find(x => x.id === id); if(!c)
 function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); openCierreHistory(); }); }
 function resetPeriodProfit() { showConfirm("¿Deseas reiniciar las ganancias?", () => { lastResetDate = new Date().toISOString(); virtualProfitBase = 0; localStorage.setItem('copo_last_reset', lastResetDate); localStorage.setItem('copo_virtual_profit', 0); updateUI(); }); }
 
-// INTERFAZ DE CIERRES REESTRUCTURADA: Colores específicos e inyección de botones solicitados
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value, kw = document.getElementById('c-keyword').value.toLowerCase().trim(), incAdj = document.getElementById('include-adj-report').checked; if(!f || !t) return showMsg("Faltan fechas"); 
     let i=0, e=0, matches = []; const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
@@ -848,7 +847,22 @@ function saveHistoricalCierre(f, t, total, ing, egr, kw = "") {
     showConfirm(`¿Deseas archivar este reporte en el historial de cierres?`, () => { cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota }); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); showMsg("Reporte guardado con éxito."); });
 }
 
-// CARGA HISTÓRICA COMPLETA: Activación de los 4 selectores solicitados
+// RESTAURACIÓN EN GESTORES DE MODAL: Asignan correctamente el puntero del tipo para que executeEntry no falle
+function openMethodModal(t) { 
+    if(!document.getElementById('amount').value) return showMsg("Monto vacío"); 
+    pendingType = t; 
+    document.getElementById('method-modal').style.display = 'flex'; 
+}
+function closeMethodModal() { document.getElementById('method-modal').style.display = 'none'; }
+function openAdjModal() { if(!document.getElementById('amount').value) return showMsg("Monto vacío"); document.getElementById('adj-modal').style.display = 'flex'; }
+function closeAdjModal() { document.getElementById('adj-modal').style.display = 'none'; }
+
+function executeEntry(m, ot = null) { 
+    const t = ot || pendingType; const dsc = document.getElementById('desc').value || (t === 'CAP_BASE' ? 'Saldo Real Fijado' : 'S/D');
+    movements.unshift({ id: Date.now(), type: t, amount: cleanAmount(document.getElementById('amount').value), desc: dsc, method: m, date: new Date().toISOString(), img: "" }); 
+    localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
+}
+
 function openHistoryLoader() { 
     openModal("Carga Histórica", `<div class="form-box" style="background:transparent; border:none; padding:0;">
         <label class="input-label">Fecha del Registro</label>
