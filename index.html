@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.0 - Edición Nube</title>
+<title>Gestión Total 7.0.1 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -86,7 +86,6 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 .version-tag { text-align: center; font-size: 0.7rem; color: #444; font-weight: bold; margin-bottom: 15px; }
 
-/* Nuevo estilo para el panel de Google Cloud */
 .seccion-google { background: rgba(0, 38, 255, 0.03); border: 1px dashed #0026ff; padding: 15px; border-radius: 12px; margin-top: 20px; text-align: left; }
 .seccion-google h4 { margin-top: 0; color: #3498db; display: flex; align-items: center; gap: 8px; }
 .status-badge { display: inline-block; padding: 4px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: bold; text-transform: uppercase; }
@@ -98,7 +97,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.0 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.0.1 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -246,7 +245,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.1 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -318,12 +317,10 @@ window.onload = function() {
     renderStaff(); 
     initManual();
     
-    // Inicializar hilos de Google
     gapiLoad();
     gisInit();
 };
 
-// FUNCIONES BASE DE LA API DE GOOGLE CLOUD
 function gapiLoad() { gapi.load('client', initializeGapiClient); }
 async function initializeGapiClient() {
     await gapi.client.init({ apiKey: GOOGLE_API_KEY, discoveryDocs: GOOGLE_DISCOVERY_DOCS });
@@ -538,7 +535,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.0", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, copo_biz_data: bizData
+        version: "7.0.1", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, copo_biz_data: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
@@ -563,9 +560,16 @@ function importDataBackup(input) {
                 localStorage.setItem('copo_trash', JSON.stringify(importedPackage.copo_trash || []));
                 localStorage.setItem('copo_virtual_profit', importedPackage.copo_virtual_profit || 0);
                 localStorage.setItem('copo_last_reset', importedPackage.copo_last_reset || new Date(0).toISOString());
-                localStorage.setItem('copo_biz_data', JSON.stringify(importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" }));
+                
+                let bData = importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" };
+                localStorage.setItem('copo_biz_data', JSON.stringify(bData));
 
-                secure_pin_hash = importedPackage.copo_pin_hash; movements = importedPackage.copo_data; staff = importedPackage.copo_staff; cierres = importedPackage.copo_cierres || []; trashMovements = importedPackage.copo_trash || []; virtualProfitBase = parseFloat(importedPackage.copo_virtual_profit || 0); lastResetDate = importedPackage.copo_last_reset || new Date(0).toISOString(); bizData = importedPackage.copo_biz_data || { name: "CoPo Admin", owner: "", logo: "" };
+                secure_pin_hash = importedPackage.copo_pin_hash; movements = importedPackage.copo_data; staff = importedPackage.copo_staff; cierres = importedPackage.copo_cierres || []; trashMovements = importedPackage.copo_trash || []; virtualProfitBase = parseFloat(importedPackage.copo_virtual_profit || 0); lastResetDate = importedPackage.copo_last_reset || new Date(0).toISOString(); bizData = bData;
+                
+                // REPARACIÓN COMPLEMENTARIA: Refrescar de inmediato los campos en la pestaña de configuración al restaurar
+                if(bizData.name) document.getElementById('biz-name-input').value = bizData.name;
+                if(bizData.owner) document.getElementById('owner-name-input').value = bizData.owner;
+                
                 applyBusinessIdentity(); updateUI(); renderStaff(); showMsg("¡Restauración Completa!");
             });
         } catch (err) { showMsg("Error crítico al procesar el archivo."); }
@@ -677,12 +681,20 @@ function deleteCurrentZoomedImage() {
 
 function showMsg(msg) { document.getElementById('dialog-title').innerText = "Aviso"; document.getElementById('dialog-msg').innerText = msg; document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" onclick="closeDialog()">OK</button>`; document.getElementById('custom-dialog').style.display = 'flex'; }
 
+// CIRUGÍA SÓLIDA DE CONFIRMACIÓN: Vincula el puntero de ejecución asíncrona de forma global e inequívoca
 function showConfirm(msg, onConfirm) { 
-    document.getElementById('dialog-title').innerText = "Confirmar"; document.getElementById('dialog-msg').innerHTML = msg; 
+    document.getElementById('dialog-title').innerText = "Confirmar"; 
+    document.getElementById('dialog-msg').innerHTML = msg; 
     document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-adj" style="flex:1" onclick="closeDialog()">NO</button><button class="btn btn-in" style="flex:1" onclick="executeConfirmAction()">SÍ</button>`; 
-    window.pendingAction = onConfirm; document.getElementById('custom-dialog').style.display = 'flex'; 
+    window.pendingAction = onConfirm; 
+    document.getElementById('custom-dialog').style.display = 'flex'; 
 }
-function executeConfirmAction() { if (window.pendingAction) window.pendingAction(); closeDialog(); }
+function executeConfirmAction() { 
+    if (typeof window.pendingAction === 'function') { 
+        window.pendingAction(); 
+    } 
+    closeDialog(); 
+}
 function closeDialog() { document.getElementById('custom-dialog').style.display = 'none'; }
 
 function openTrashModal() {
@@ -720,6 +732,20 @@ function executeEntry(m, ot = null) {
     const t = ot || pendingType; const dsc = document.getElementById('desc').value || (t === 'CAP_BASE' ? 'Saldo Real Fijado' : 'S/D');
     movements.unshift({ id: Date.now(), type: t, amount: cleanAmount(document.getElementById('amount').value), desc: dsc, method: m, date: new Date().toISOString(), img: "" }); 
     localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
+}
+
+// CIRUGÍA EN RECEPTOR DE BASURA: Envía de forma segura el objeto al localStorage y fuerza el repintado inmediato de las celdas
+function deleteMovement(id) { 
+    showConfirm("¿Deseas enviar este movimiento a la papelera de reciclaje?", () => { 
+        const matchIdx = movements.findIndex(m => m.id === id);
+        if (matchIdx !== -1) {
+            const trashedItem = movements.splice(matchIdx, 1)[0];
+            trashMovements.unshift(trashedItem);
+            localStorage.setItem('copo_data', JSON.stringify(movements));
+            localStorage.setItem('copo_trash', JSON.stringify(trashMovements));
+            updateUI(); 
+        }
+    }); 
 }
 
 function editMovement(id) {
