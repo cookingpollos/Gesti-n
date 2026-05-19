@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.8.2 - Edición Nube</title>
+<title>Gestión Total 7.8.3 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -106,7 +106,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.8.2 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.8.3 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -257,7 +257,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.8.2 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.8.3 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -500,7 +500,7 @@ function updateUI() {
     mBank = lastCapBanco ? lastCapBanco.amount : 0;
 
     movements.forEach(m => {
-        if (m.type === 'CREDIT_PENDING') return;
+        if (m.type === 'CREDIT_PENDING' || m.method === 'USO EXTERNO') return;
 
         if (m.date > lastResetDate && !m.historical) { 
             if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; 
@@ -605,7 +605,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.8.2", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
+        version: "7.8.3", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
@@ -845,7 +845,7 @@ function processSecureSystemClear() {
         const dialogWrapper = document.getElementById('custom-dialog-wrapper');
         dialogWrapper.style.borderColor = "#ff3b3b";
         document.getElementById('dialog-title').innerText = "ERROR DE PIN";
-        document.getElementById('dialog-msg').innerText = "El PIN ingresado es incorrecto. La operación estructural fue bloqueada por seguridad.";
+        document.getElementById('dialog-msg').innerText = "El PIN ingresado es incorrecto. La operation estructural fue bloqueada por seguridad.";
         document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-out" style="width:100%; margin:0;" onclick="closeDialogResetStyles()">ENTENDIDO</button>`;
     }
 }
@@ -941,6 +941,7 @@ function editMovement(id) {
                 <button class="btn ${m.method === 'TARJETA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TARJETA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">💳 TARJETA</button>
                 <button class="btn ${m.method === 'SIMPE' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='SIMPE'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">📲 SIMPE</button>
                 <button class="btn ${m.method === 'TRANSFERENCIA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TRANSFERENCIA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">🏦 TRANSF.</button>
+                <button class="btn ${m.method === 'USO EXTERNO' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='USO EXTERNO'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem; grid-column: span 2;">💼 USO EXTERNO</button>
             </div><input type="hidden" id="temp-method" value="${m.method}"><label class="input-label">Tipo de Movimiento</label><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
                 <button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CREDIT_PENDING' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button>
                 <button class="btn ${m.type === 'OUT' || m.type === 'ADJ_OUT' ? 'btn-out' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='OUT'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📤 EGRESO / SALIDA</button>
@@ -1093,6 +1094,7 @@ function openHistoryLoader() {
             <option value="TARJETA">💳 TARJETA</option>
             <option value="SIMPE">📲 SIMPE</option>
             <option value="TRANSFERENCIA">🏦 TRANSF.</option>
+            <option value="USO EXTERNO">💼 USO EXTERNO</option>
         </select>
         <button class="btn btn-in" onclick="saveOldMove()">GUARDAR EN CUADRO</button>
     </div>`); 
