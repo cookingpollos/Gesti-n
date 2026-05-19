@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.0.5 - Edición Nube</title>
+<title>Gestión Total 7.0.8 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -47,8 +47,14 @@ input:disabled { background: #222; color: #666; cursor: not-allowed; border-colo
 .btn-pay { background: #0026ff; } .btn-advance { background: #ff3b3b; }
 .btn-aguinaldo { background: #ff9900; }
 .btn-cap { background: #ff9900; } 
+.btn-grey { background: #444444; color: #ffffff; }
 
 .btn-danger-clear { background: #331111; color: #ff3b3b; width: 100%; padding: 18px; border-radius: 10px; cursor: pointer; border: 1px solid #442222; font-weight: bold; font-size: 0.8rem; margin-top: 20px; text-transform: uppercase; transition: 0.3s; }
+
+.search-container-flex { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; background: #1a1a1a; padding: 10px; border-radius: 10px; border: 1px solid #333; }
+.count-badge { background: #0b0b0b; border: 1px solid #333; border-radius: 8px; padding: 12px; text-align: center; min-width: 65px; box-sizing: border-box; }
+.count-badge small { display: block; font-size: 0.55rem; color: #888; font-weight: bold; text-transform: uppercase; line-height: 1; margin-bottom: 4px; }
+.count-badge span { font-size: 1rem; font-weight: bold; color: #0026ff; display: block; line-height: 1; }
 
 .history-wrapper { background: #1a1a1a; border-radius: 12px; border: 1px solid #333; max-height: 350px; overflow-y: auto; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
@@ -56,6 +62,7 @@ th { padding: 10px; text-align: left; color: #888; border-bottom: 1px solid #333
 td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 
 .row-cap-base { color: #ff9900 !important; font-weight: bold; background: rgba(255, 153, 0, 0.1); }
+.row-credit-pending { color: #ff9900 !important; background: rgba(255, 153, 0, 0.03); }
 
 .img-preview-mini { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 1px solid #333; }
 .btn-add-img { color: #0026ff; font-size: 1.2rem; cursor: pointer; background: none; border: none; }
@@ -97,7 +104,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.0.5 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.0.8 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -178,8 +185,12 @@ input:checked + .slider:before { transform: translateX(20px); }
             <button class="btn btn-adj help-trigger" onclick="openAdjModal()" data-title="Uso Externo / Inyección" data-help="Mueve el saldo de banco o efectivo sin afectar la ganancia neta. Ideal para gastos personales, imprevistos o inyecciones fuera del negocio.">USO EXTERNO / INYECCIÓN</button>
         </div>
 
-        <div style="margin-bottom:15px; background:#1a1a1a; padding:10px; border-radius:10px;">
-            <input type="text" id="buscador" onkeyup="filtrarMovimientos()" placeholder="🔍 Buscar detalle o método..." style="margin:0; width:100%;">
+        <div class="search-container-flex">
+            <input type="text" id="buscador" onkeyup="filtrarMovimientos()" placeholder="🔍 Buscar detalle o método..." style="margin:0; flex:1;">
+            <div class="count-badge">
+                <small>Movs</small>
+                <span id="mov-counter-val">0</span>
+            </div>
         </div>
 
         <div class="history-wrapper">
@@ -202,7 +213,6 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div id="tab-configuracion" style="display:none;">
         <div class="form-box">
             <h4 style="margin-top:0; color:#0026ff;">Identidad</h4>
-            <label class="input-label">Logo</label>
             <label class="file-label" for="business-logo-input" style="border-style: solid; background: #0b0b0b; padding: 15px; text-align: center; border-radius: 12px; cursor: pointer; display: block; border: 1px solid #444; color: #eee; font-weight: bold; margin-bottom: 12px;">
                 <i class="fas fa-image" style="margin-right: 8px; color: #25D366;"></i> SUBIR LOGO
             </label>
@@ -221,7 +231,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             <input type="password" id="new-pin-input" placeholder="Ingrese nuevo PIN" maxlength="4" inputmode="numeric">
             <button class="btn btn-adj" onclick="changePin()">CAMBIAR PIN</button>
             
-            <button class="btn btn-adj help-trigger" style="margin-top: 15px; background: #222; border: 1px solid #444;" onclick="openTrashModal()" data-title="Papelera de Reciclaje" data-help="Revisa los movimientos eliminados de la contabilidad. Puedes restaurarlos o borrarlos permanentemente."><i class="fas fa-trash-alt" style="margin-right:8px; color:#ff9900;"></i> VER PAPELERA DE RECICLAJE</button>
+            <button class="btn btn-adj help-trigger" style="margin-top: 15px; background: #222; border: 1px solid #444;" onclick="openTrashModal()" data-title="Papelera de Reciclaje" data-help="Revisa los movimientos eliminados de la contabilidad. Puedes restaurarlos o borrarlos permanentemente."><i class="fas fa-trash-alt" style="margin-right:8px; color:#ff9900;"></i> VER PAPELERA DE RECOLECCIÓN</button>
             
             <h4 style="margin-top:25px; color:#25D366;">Respaldos de Datos (Seguridad)</h4>
             <button class="btn btn-in" onclick="exportDataBackup()"><i class="fas fa-download" style="margin-right:8px;"></i> CREAR COPIA DE SEGURIDAD</button>
@@ -245,7 +255,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.5 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.8 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -254,7 +264,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <p id="help-text" style="font-size:0.9rem; color:#ccc; line-height:1.4; margin-bottom:0;"></p>
 </div>
 
-<input type="file" id="table-file-input" accept="image/*" style="display:none">
+<input type="file" id="table-file-input" accept="image/*" style="display:none" onchange="processTableFile(this)">
 
 <div id="imgModal" class="modal" style="z-index: 12000;">
     <div class="modal-content-wrapper" style="max-width: 95vw; padding: 5px; position: relative;">
@@ -266,6 +276,8 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
 
+<div id="credit-release-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('credit-release-modal')">×</span><h3 style="color:white; margin-bottom:15px;">Liberar Crédito: ¿Cómo pagaron?</h3><button class="btn btn-adj" onclick="releaseCreditToCashflow('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="releaseCreditToCashflow('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="releaseCreditToCashflow('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="releaseCreditToCashflow('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
+
 <div id="adj-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeAdjModal()">×</span><h3 style="color:white;">Uso Externo / Inyección</h3>
 <button class="btn btn-in" onclick="executeEntry('EFECTIVO', 'ADJ_IN')">+ Inyección a Efectivo</button>
 <button class="btn btn-in" onclick="executeEntry('BANCO', 'ADJ_IN')">+ Inyección a Banco</button>
@@ -275,7 +287,10 @@ input:checked + .slider:before { transform: translateX(20px); }
 <hr style="border:1px solid #333;">
 <p style="color:#ff9900; font-size:0.65rem; margin-bottom:12px; font-weight:bold; line-height:1.2;">⚠️ SINCRONIZAR SALDO: Fuerza el monto en el cuadro ignorando errores del pasado.</p>
 <button class="btn btn-cap" onclick="executeEntry('EFECTIVO', 'CAP_BASE')">FIJAR SALDO REAL: EFECTIVO</button>
-<button class="btn btn-cap" onclick="executeEntry('BANCO', 'CAP_BASE')">FIJAR SALDO REAL: BANCO</button></div></div>
+<button class="btn btn-cap" onclick="executeEntry('BANCO', 'CAP_BASE')">FIJAR SALDO REAL: BANCO</button>
+<hr style="border:1px solid #333;">
+<button class="btn btn-grey" onclick="executeEntry('CRÉDITO', 'CREDIT_PENDING')">📝 REGISTRAR CRÉDITO PENDIENTE</button>
+</div></div>
 
 <div id="history-modal" class="modal" style="z-index: 9999;"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('history-modal')">×</span><h3 id="modal-title" style="color:white; margin-bottom:15px;"></h3><div id="modal-content"></div></div></div>
 <div id="custom-dialog" class="modal"><div class="modal-content-wrapper" style="text-align:center;"><h3 id="dialog-title">Aviso</h3><div id="dialog-msg" style="color:#ccc; margin-bottom: 20px;"></div><div id="dialog-buttons" style="display:flex; gap:10px; margin-top:20px;"></div></div></div>
@@ -307,9 +322,8 @@ let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISO
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
 
 let currentUploadContext = { id: null, staffIdx: null };
+let selectedCreditId = null; // Puntero temporal para deudas saldadas
 window.pendingAction = null; 
-
-// CIRUGÍA DE CONTROL GLOBAL: Declaramos explícitamente el puntero de flujos para que el sistema sepa qué tipo de botón estás tocando
 let pendingType = 'IN'; 
 
 window.onload = function() { 
@@ -405,7 +419,9 @@ function validatePin() {
     const val = document.getElementById('pin').value;
     if(!val) return;
     const hashed = hashPin(val);
-    if (val === "1234" || hashed === secure_pin_hash || val === localStorage.getItem('copo_raw_pin')) { 
+    const storedRawPin = localStorage.getItem('copo_raw_pin');
+    
+    if (val === "1234" || hashed === secure_pin_hash || (storedRawPin && val === storedRawPin)) { 
         document.getElementById('login-screen').style.display = 'none'; 
         document.getElementById('admin-panel').style.display = 'block'; 
         updateUI(); renderStaff(); 
@@ -420,7 +436,8 @@ function changePin() {
     if(currentPin.length !== 4 || nPin.length !== 4) return showMsg("Ambos PIN deben ser de 4 dígitos");
     
     const hashedCurrent = hashPin(currentPin);
-    if(currentPin !== "1234" && hashedCurrent !== secure_pin_hash && currentPin !== localStorage.getItem('copo_raw_pin')) { 
+    const storedRawPin = localStorage.getItem('copo_raw_pin');
+    if(currentPin !== "1234" && hashedCurrent !== secure_pin_hash && currentPin !== storedRawPin) { 
         return showMsg("El PIN actual es incorrecto"); 
     }
     
@@ -480,6 +497,9 @@ function updateUI() {
     mBank = lastCapBanco ? lastCapBanco.amount : 0;
 
     movements.forEach(m => {
+        // SEGURIDAD DE FILTRADO: Si el tipo es CREDIT_PENDING ignoramos el monto de los acumuladores contables
+        if (m.type === 'CREDIT_PENDING') return;
+
         if (m.date > lastResetDate && !m.historical) { 
             if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; 
         }
@@ -495,29 +515,64 @@ function updateUI() {
         }
     });
 
+    let visibleCounter = 0;
     const displayMovements = [...movements].reverse();
     displayMovements.forEach(m => {
+        visibleCounter++;
         let isCap = m.type === 'CAP_BASE';
-        let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE') ? m.amount : -m.amount;
-        let colorClass = isCap ? 'cash-color' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit'));
+        let isCredit = m.type === 'CREDIT_PENDING';
+        
+        let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE' || m.type === 'CREDIT_PENDING') ? m.amount : -m.amount;
+        
+        let colorClass = isCap ? 'cash-color' : (isCredit ? 'row-cap-base' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit')));
         const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
         
-        body.innerHTML += `<tr class="${isCap ? 'row-cap-base' : ''}">
+        // Botón de cobro rápido para deudas vigentes
+        let creditActionHtml = isCredit ? `<button class="btn-icon" style="color:#25D366" onclick="openCreditReleaseModal(${m.id})"><i class="fas fa-handshake"></i></button>` : '';
+
+        body.innerHTML += `<tr class="${isCap ? 'row-cap-base' : (isCredit ? 'row-credit-pending' : '')}">
             <td style="white-space:nowrap">${getFormatedDate(m.date)}</td>
-            <td>${m.desc}<br><small>${m.method}${isCap ? ' [SALDO FIJADO]' : ''}</small></td>
+            <td>${m.desc}<br><small>${m.method}${isCap ? ' [SALDO FIJADO]' : (isCredit ? ' [CRÉDITO PENDIENTE]' : '')}</small></td>
             <td style="text-align:center">${imgBtn}</td>
             <td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td>
             <td style="text-align:right; white-space:nowrap;">
+                ${creditActionHtml}
                 <button class="btn-icon" style="color:#0026ff" onclick="editMovement(${m.id})"><i class="fas fa-edit"></i></button>
                 <button class="btn-icon" style="color:#ff3b3b" onclick="deleteMovement(${m.id})"><i class="fas fa-trash"></i></button>
             </td>
         </tr>`;
     });
 
+    // Setea el indicador numérico compacto de movimientos del tablero
+    document.getElementById('mov-counter-val').innerText = visibleCounter;
+
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
     document.getElementById('val-cash').innerText = "₡" + formatVisual(mCash, 2);
     document.getElementById('total-balance').innerText = "₡" + formatVisual(mBank + mCash, 2);
     document.getElementById('net-profit').innerText = "₡" + formatVisual((tin - tout) + virtualProfitBase);
+}
+
+// GESTIÓN DE COBRO DE CRÉDITOS
+function openCreditReleaseModal(id) {
+    selectedCreditId = id;
+    document.getElementById('credit-release-modal').style.display = 'flex';
+}
+
+function releaseCreditToCashflow(methodSelected) {
+    const mIdx = movements.findIndex(m => m.id === selectedCreditId);
+    if (mIdx !== -1) {
+        // Transformamos el movimiento en un ingreso neto legal para las cuentas de la app
+        movements[mIdx].type = 'IN';
+        movements[mIdx].method = methodSelected;
+        movements[mIdx].desc = movements[mIdx].desc + ` (Saldado en ${methodSelected})`;
+        movements[mIdx].date = new Date().toISOString(); // Se asume fecha de caja del día de cobro
+
+        localStorage.setItem('copo_data', JSON.stringify(movements));
+        closeModal('credit-release-modal');
+        updateUI();
+        showMsg("¡Crédito cobrado con éxito! Fondos agregados al flujo activo.");
+    }
+    selectedCreditId = null;
 }
 
 function triggerFileSelect(id, staffIdx = null) { 
@@ -552,7 +607,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.0.5", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
+        version: "7.0.8", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
@@ -596,7 +651,13 @@ function importDataBackup(input) {
 
 function filtrarMovimientos() {
     const v = document.getElementById('buscador').value.toLowerCase();
-    Array.from(document.getElementById('history-body').rows).forEach(r => { r.style.display = r.innerText.toLowerCase().includes(v) ? "" : "none"; });
+    let countRows = 0;
+    Array.from(document.getElementById('history-body').rows).forEach(r => { 
+        let match = r.innerText.toLowerCase().includes(v);
+        r.style.display = match ? "" : "none"; 
+        if(match) countRows++;
+    });
+    document.getElementById('mov-counter-val').innerText = countRows;
 }
 
 function saveStaff() { 
@@ -772,9 +833,9 @@ function editMovement(id) {
                 <button class="btn ${m.method === 'SIMPE' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='SIMPE'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">📲 SIMPE</button>
                 <button class="btn ${m.method === 'TRANSFERENCIA' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-method').value='TRANSFERENCIA'; updateEditMethodUI(this)" style="padding:10px; font-size:0.7rem;">🏦 TRANSF.</button>
             </div><input type="hidden" id="temp-method" value="${m.method}"><label class="input-label">Tipo de Movimiento</label><div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px;">
-                <button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button>
+                <button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CREDIT_PENDING' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button>
                 <button class="btn ${m.type === 'OUT' || m.type === 'ADJ_OUT' ? 'btn-out' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='OUT'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📤 EGRESO / SALIDA</button>
-            </div><input type="hidden" id="temp-dir" value="${m.type.includes('IN') ? 'IN' : 'OUT'}"><input type="hidden" id="is-adj-orig" value="${m.type.startsWith('ADJ_') ? 'true' : 'false'}"><input type="hidden" id="orig-type" value="${m.type}">`;
+            </div><input type="hidden" id="temp-dir" value="${m.type.includes('IN') || m.type === 'CREDIT_PENDING' ? 'IN' : 'OUT'}"><input type="hidden" id="is-adj-orig" value="${m.type.startsWith('ADJ_') ? 'true' : 'false'}"><input type="hidden" id="orig-type" value="${m.type}">`;
     }
     openModal("Editar Registro", html + `<button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button></div>`);
 }
@@ -790,7 +851,9 @@ function saveEditMovement(id) {
         const isAdjOrig = document.getElementById('is-adj-orig').value === 'true', origType = document.getElementById('orig-type').value;
 
         let newType = newDir;
-        if (origType === 'CAP_BASE') { newType = 'CAP_BASE'; } else if (isAdjOrig) { newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT'; }
+        if (origType === 'CAP_BASE') { newType = 'CAP_BASE'; } 
+        else if (origType === 'CREDIT_PENDING') { newType = 'CREDIT_PENDING'; }
+        else if (isAdjOrig) { newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT'; }
 
         movements[mIdx].amount = newAmt; movements[mIdx].desc = newDsc; movements[mIdx].method = newMethod; movements[mIdx].type = newType;
         if (origType !== 'CAP_BASE') { movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString(); }
@@ -816,38 +879,79 @@ function openCierreHistory() {
     let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th style="text-align:center">Detalle</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`; cierres.forEach(c => { h += `<tr><td>${getFormatedDate(c.date)}</td><td style="text-align:center"><button class="btn-ver-cierre" onclick="verDetalleCierre(${c.id})">VER</button></td><td class="profit" style="text-align:right">₡${formatVisual(c.totalNeto)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteCierre(${c.id})"><i class="fas fa-trash"></i></button></td></tr>`; }); 
     openModal("Historial de Cierres", h + "</tbody></table></div>"); 
 }
-function verDetalleCierre(id) { const c = cierres.find(x => x.id === id); if(!c) return; openModal("Detalle", `<div style="background:#000; padding:15px; border-radius:10px;"><p><b>Periodo:</b> <small>${c.note}</small></p><hr style="border:1px solid #222;"><h3 class="adj-color">Balance: ₡${formatVisual(c.totalNeto, 2)}</h3></div>`); }
+
+function verDetalleCierre(id) { 
+    const c = cierres.find(x => x.id === id); 
+    if(!c) return; 
+    let htmlDesglose = `<div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
+        <p><b>Periodo:</b> <br><small style="color:#aaa;">${c.note}</small></p>
+        <hr style="border:1px solid #222; margin:10px 0;">
+        <p class="profit" style="font-weight:bold; font-size:1.05rem; margin:8px 0;">Ingresos: ₡${formatVisual(c.ingresos || 0)}</p>
+        <p class="expense" style="font-weight:bold; font-size:1.05rem; margin:8px 0;">Egresos: ₡${formatVisual(c.egresos || 0)}</p>
+        <h3 class="adj-color" style="border:1px dashed #0026ff; padding:10px; border-radius:8px; text-align:center; margin-top:15px; font-size:1.2rem;">Balance: ₡${formatVisual(c.totalNeto, 2)}</h3>
+    </div>`;
+    openModal("Desglose del Reporte", htmlDesglose); 
+}
+
 function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); openCierreHistory(); }); }
 function resetPeriodProfit() { showConfirm("¿Deseas reiniciar las ganancias?", () => { lastResetDate = new Date().toISOString(); virtualProfitBase = 0; localStorage.setItem('copo_last_reset', lastResetDate); localStorage.setItem('copo_virtual_profit', 0); updateUI(); }); }
 
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value, kw = document.getElementById('c-keyword').value.toLowerCase().trim(), incAdj = document.getElementById('include-adj-report').checked; if(!f || !t) return showMsg("Faltan fechas"); 
     let i=0, e=0, matches = []; const fT = new Date(f + "T00:00:00").toISOString(), tT = new Date(t + "T23:59:59").toISOString(); 
+    
     movements.forEach(m => { 
         if(m.date >= fT && m.date <= tT && (kw === "" || m.desc.toLowerCase().includes(kw))) { 
-            if((m.type==='IN' || m.type==='OUT') || (incAdj && m.type.startsWith('ADJ'))) { if(m.type.includes('IN')) i+=m.amount; else e+=m.amount; matches.push(m); }
+            if((m.type==='IN' || m.type==='OUT') || (incAdj && m.type.startsWith('ADJ'))) { 
+                if(m.type.includes('IN')) i+=m.amount; else e+=m.amount; 
+                matches.push(m); 
+            }
         } 
     }); 
     const ganancia = i - e;
     const notaPeriodo = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` - Filtro: "${kw}"` : "");
 
+    let tablaFacturas = `<div class="history-wrapper" style="margin-top:15px; max-height:220px;"><table style="width:100%;"><thead><tr><th>Detalle</th><th style="text-align:center;">Fact.</th><th style="text-align:right;">Monto</th></tr></thead><tbody>`;
+    if(matches.length === 0) {
+        tablaFacturas += `<tr><td colspan="3" style="text-align:center; color:#666; padding:15px;">Ningún documento coincide con el filtro</td></tr>`;
+    } else {
+        [...matches].reverse().forEach(m => {
+            let eff = (m.type === 'IN' || m.type === 'ADJ_IN') ? m.amount : -m.amount;
+            let cCls = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
+            let imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<span style="color:#444; font-size:0.7rem;">S/F</span>`;
+            tablaFacturas += `<tr>
+                <td><small style="color:#888;">${formatDateSlash(m.date.split('T')[0])}</small><br>${m.desc}</td>
+                <td style="text-align:center;">${imgBtn}</td>
+                <td class="${cCls}" style="text-align:right; font-weight:bold;">₡${formatVisual(eff)}</td>
+            </tr>`;
+        });
+    }
+    tablaFacturas += `</tbody></table></div>`;
+
     openModal("Cierre de Periodo", `<div style="background:#000; padding:15px; border-radius:10px; text-align:left;">
         <p><b>Periodo:</b> <small>${notaPeriodo}</small></p>
         <hr style="border:1px solid #222; margin:10px 0;">
-        <p class="profit" style="font-weight:bold; font-size:1.1rem;">Ingresos: ₡${formatVisual(i)}</p>
-        <p class="expense" style="font-weight:bold; font-size:1.1rem;">Egresos: ₡${formatVisual(e)}</p>
+        <p class="profit" style="font-weight:bold; font-size:1.1rem; margin:5px 0;">Ingresos: ₡${formatVisual(i)}</p>
+        <p class="expense" style="font-weight:bold; font-size:1.1rem; margin:5px 0;">Egresos: ₡${formatVisual(e)}</p>
         <h3 class="adj-color" style="border:1px dashed #0026ff; padding:10px; border-radius:8px; text-align:center; margin-top:15px;">Balance: ₡${formatVisual(ganancia)}</h3>
     </div>
+    ${tablaFacturas}
     <button class="btn btn-in" style="margin-top:15px; margin-bottom:5px;" onclick="injectPeriodToDashboardProfit(${ganancia}, '${f}', '${t}')">REFLEJAR GANANCIA</button>
     <button class="btn btn-adj" style="background:#444;" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button>`); 
 }
+
 function injectPeriodToDashboardProfit(amt, f, t) { virtualProfitBase += amt; localStorage.setItem('copo_virtual_profit', virtualProfitBase); updateUI(); closeModal('history-modal'); showMsg("Ganancia consolidada en el cuadro."); }
+
 function saveHistoricalCierre(f, t, total, ing, egr, kw = "") {
     const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` [Filtro: ${kw}]` : "");
-    showConfirm(`¿Deseas archivar este reporte en el historial de cierres?`, () => { cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota }); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); showMsg("Reporte guardado con éxito."); });
+    showConfirm(`¿Deseas archivar este reporte en el historial de cierres?`, () => { 
+        cierres.unshift({ id: Date.now(), date: new Date().toISOString(), totalNeto: total, ingresos: ing, egresos: egr, note: nota }); 
+        localStorage.setItem('copo_cierres', JSON.stringify(cierres)); 
+        closeModal('history-modal'); 
+        showMsg("Reporte guardado con éxito."); 
+    });
 }
 
-// RESTAURACIÓN EN GESTORES DE MODAL: Asignan correctamente el puntero del tipo para que executeEntry no falle
 function openMethodModal(t) { 
     if(!document.getElementById('amount').value) return showMsg("Monto vacío"); 
     pendingType = t; 
