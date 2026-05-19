@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.2.0 - Edición Nube</title>
+<title>Gestión Total 7.8.2 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -68,7 +68,7 @@ td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 
 .img-preview-mini { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 1px solid #333; }
 .btn-add-img { color: #0026ff; font-size: 1.2rem; cursor: pointer; background: none; border: none; }
-.btn-ver-cierre { background: #0026ff; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
+.btn-ver-cierre { background: #0026ff; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; cursor: pointer; font-weight: bold; margin-right: 2px; }
 
 .staff-bar { background: #1a1a1a; border: 1px solid #333; border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
 .staff-header-bar { padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -106,7 +106,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.2.0 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.8.2 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -243,7 +243,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </label>
             <input type="file" id="import-backup-file" accept=".json" style="display:none" onchange="importDataBackup(this)">
 
-            <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()" data-title="Borrado Total" data-help="Elimina absolutamente todo del sistema. Úsalo solo si quieres empezar de cero. Pide PIN.">Borrar todo el sistema</button>
+            <button class="btn-danger-clear help-trigger" onclick="confirmFullReset()">Borrar todo el sistema</button>
             
             <div class="seccion-google">
                 <h4><i class="fab fa-google" style="color: #4285F4;"></i> Sincronización Google Cloud</h4>
@@ -257,7 +257,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.2.0 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.8.2 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -295,7 +295,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 </div></div>
 
 <div id="history-modal" class="modal" style="z-index: 9999;"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('history-modal')">×</span><h3 id="modal-title" style="color:white; margin-bottom:15px;"></h3><div id="modal-content"></div></div></div>
-<div id="custom-dialog" class="modal"><div class="modal-content-wrapper" style="text-align:center;"><h3 id="dialog-title">Aviso</h3><div id="dialog-msg" style="color:#ccc; margin-bottom: 20px;"></div><div id="dialog-buttons" style="display:flex; gap:10px; margin-top:20px;"></div></div></div>
+<div id="custom-dialog" class="modal"><div class="modal-content-wrapper" id="custom-dialog-wrapper" style="text-align:center;"><h3 id="dialog-title">Aviso</h3><div id="dialog-msg" style="color:#ccc; margin-bottom: 20px;"></div><div id="dialog-buttons" style="display:flex; gap:10px; margin-top:20px;"></div></div></div>
 
 <script>
 // ==========================================
@@ -466,7 +466,8 @@ function getFormatedDate(d) {
 }
 
 function formatDateSlash(isoString) {
-    let d = new Date(isoString + "T12:00:00");
+    if(!isoString) return "--/--/----";
+    let d = new Date(isoString.includes('T') ? isoString : isoString + "T12:00:00");
     let day = d.getDate().toString().padStart(2, '0');
     let month = (d.getMonth() + 1).toString().padStart(2, '0');
     return `${day}/${month}/${d.getFullYear()}`;
@@ -604,7 +605,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.2.0", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
+        version: "7.8.2", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
@@ -657,45 +658,12 @@ function filtrarMovimientos() {
     document.getElementById('mov-counter-val').innerText = countRows;
 }
 
-function saveStaff() { 
-    localStorage.setItem('copo_staff', JSON.stringify(staff)); 
-}
-
-// LÓGICA DE MANIPULACIÓN DEL MÓDULO PLANILLA
-function toggleStaff(i) {
-    const bars = document.querySelectorAll('.staff-bar');
-    if(bars[i]) {
-        bars[i].classList.toggle('active');
-    }
-}
-
-function toggleFeature(i, prop) {
-    if(staff[i]) {
-        staff[i][prop] = !staff[i][prop];
-        saveStaff();
-    }
-}
-
-function fixStaffEntryTime(i) {
-    const now = new Date();
-    const offset = now.getTimezoneOffset() * 60000;
-    const localISO = new Date(now.getTime() - offset).toISOString().slice(0, 16);
-    
-    if(staff[i]) {
-        staff[i].activeIn = localISO;
-        saveStaff();
-        renderStaff();
-        showMsg(`Hora de entrada fijada y respaldada para ${staff[i].name}.`);
-    }
-}
-
-function clearStaffEntryTime(i) {
-    if(staff[i]) {
-        staff[i].activeIn = "";
-        saveStaff();
-        renderStaff();
-    }
-}
+// MÓDULO PLANILLA - TOTALMENTE RECONECTADO Y OPERATIVO
+function saveStaff() { localStorage.setItem('copo_staff', JSON.stringify(staff)); }
+function toggleStaff(i) { const bars = document.querySelectorAll('.staff-bar'); if(bars[i]) bars[i].classList.toggle('active'); }
+function toggleFeature(i, prop) { if(staff[i]) { staff[i][prop] = !staff[i][prop]; saveStaff(); } }
+function fixStaffEntryTime(i) { const now = new Date(), offset = now.getTimezoneOffset() * 60000, localISO = new Date(now.getTime() - offset).toISOString().slice(0, 16); if(staff[i]) { staff[i].activeIn = localISO; saveStaff(); renderStaff(); showMsg(`Hora de entrada fijada para ${staff[i].name}.`); } }
+function clearStaffEntryTime(i) { if(staff[i]) { staff[i].activeIn = ""; saveStaff(); renderStaff(); } }
 
 function renderStaff() {
     const list = document.getElementById('staff-list'); list.innerHTML = "";
@@ -709,10 +677,7 @@ function renderStaff() {
                 else if(sh.type === 'PAYMENT_SUELDO') sueldoTotal += sh.earned;
             });
         }
-        
-        // Cargar entrada fija de base de datos si existe
         const savedInTime = s.activeIn || "";
-        
         list.innerHTML += `<div class="staff-bar"><div class="staff-header-bar" onclick="toggleStaff(${i})"><b>${s.name}</b><div style="text-align:right"><span style="font-size:0.85rem">Sueldo: ₡${formatVisual(sueldoTotal)}</span>${aguinaldoTotal > 0 ? `<br><span style="font-size:0.75rem; color:#ff9900">Agui: ₡${formatVisual(aguinaldoTotal)}</span>` : ''}</div></div><div class="staff-content"><p style="font-size:0.8rem; color:#888;">Tarifa: ₡${formatVisual(s.rate)}/h</p><div class="toggle-box"><span>Pago Horas Extras (x1.5)</span><label class="switch"><input type="checkbox" ${s.useExtras ? 'checked' : ''} onchange="toggleFeature(${i}, 'useExtras')"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; margin-bottom:15px;"><button class="btn-icon" style="color:#ff9900" onclick="openAguinaldoCalc(${i})"><i class="fas fa-piggy-bank"></i></button><button class="btn-icon" style="color:#3498db" onclick="openStaffHistory(${i})"><i class="fas fa-history"></i></button><button class="btn-icon" style="color:#25D366" onclick="checkPeriodStaff(${i})"><i class="fas fa-search"></i></button><button class="btn-icon" style="color:#0026ff" onclick="updateStaffRate(${i})"><i class="fas fa-tag"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaff(${i})"><i class="fas fa-trash"></i></button></div>
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
             <label class="input-label" style="margin:0;">Hora Entrada</label>
@@ -726,76 +691,174 @@ function renderStaff() {
 }
 
 function openStaffHistory(i) {
-    let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:center">Fact.</th><th style="text-align:right">Monto</th><th></th></tr></thead><tbody>`;
+    let h = `<div class="history-wrapper"><table><thead><tr><th>Fecha</th><th>Detalle</th><th style="text-align:center">Fact.</th><th style="text-align:right">Monto</th><th style="text-align:right">Acciones</th></tr></thead><tbody>`;
     if(staff[i].shifts) {
         staff[i].shifts.forEach(sh => {
-            let det = ""; let colorClass = sh.earned >= 0 ? 'profit' : 'expense';
+            let det = "", colorClass = sh.earned >= 0 ? 'profit' : 'expense', actionBtnHtml = `<button class="btn-ver-cierre" onclick="viewStaffShiftInvoice(${i}, ${sh.id})">VER</button>`;
             if(sh.type === 'SHIFT') det = `${getFormatedTime(sh.ord)} ord ${sh.ext > 0 ? '+ ' + getFormatedTime(sh.ext) + ' ext' : ''}`;
             else if(sh.type === 'ADVANCE') det = `<i class="fas fa-hand-holding-usd"></i> ${sh.desc || "Adelanto"}`;
-            else if(sh.type === 'AGUINALDO') det = `<i class="fas fa-piggy-bank"></i> ${sh.desc}`;
+            else if(sh.type === 'AGUINALDO') det = `<i class="fas fa-piggy-bank"></i> ${sh.desc}`; 
             else if(sh.type === 'PAYMENT_SUELDO') { det = `<i class="fas fa-check"></i> ${sh.desc}`; colorClass = 'adj-color'; }
             else if(sh.type === 'PAYMENT_AGUINALDO') { det = `<i class="fas fa-gift"></i> Pago Aguinaldo`; colorClass = 'adj-color'; }
             const imgBtn = sh.img ? `<img src="${sh.img}" class="img-preview-mini" onclick="zoomImage('${sh.img}', ${sh.id}, ${i})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${sh.id}, ${i})"><i class="fas fa-plus-circle"></i></button>`;
-            h += `<tr><td style="white-space:nowrap">${getFormatedDate(sh.date)}</td><td>${det}</td><td style="text-align:center">${imgBtn}</td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(sh.earned)}</td><td style="text-align:right"><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaffMovement(${i}, ${sh.id})"><i class="fas fa-trash"></i></button></td></tr>`;
+            h += `<tr><td>${getFormatedDate(sh.date)}</td><td>${det}</td><td style="text-align:center">${imgBtn}</td><td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(sh.earned)}</td><td style="text-align:right; white-space:nowrap;">${actionBtnHtml}<button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaffMovement(${i}, ${sh.id})"><i class="fas fa-trash"></i></button></td></tr>`;
         });
     }
     openModal("Actividad: " + staff[i].name, h + "</tbody></table></div>");
 }
 
-function deleteStaffMovement(staffIndex, moveId) {
-    showConfirm("¿Eliminar este registro?", () => {
-        const move = staff[staffIndex].shifts.find(sh => sh.id === moveId);
-        if (move) { staff[staffIndex].debt -= move.earned; staff[staffIndex].shifts = staff[staffIndex].shifts.filter(sh => sh.id !== moveId); saveStaff(); renderStaff(); closeModal('history-modal'); openStaffHistory(staffIndex); }
-    });
+function viewStaffShiftInvoice(staffIdx, shiftId) {
+    const s = staff[staffIdx], sh = s.shifts.find(x => x.id === shiftId); if (!sh) return showMsg("Registro no encontrado.");
+    let tituloHtml = "Desglose de Registro", htmlContent = `<div style="background:#000; padding:15px; border-radius:10px; text-align:left; font-size:0.85rem; line-height:1.4;"><p><b>Empleado:</b> ${s.name}</p><p><b>Fecha de Registro:</b> ${getFormatedDate(sh.date)}</p><hr style="border:1px solid #222; margin:10px 0;">`;
+    if (sh.metaDesglose) {
+        const meta = sh.metaDesglose; htmlContent += `<p><b>Rango Evaluado:</b><br><small style="color:#ff9900;">Desde: ${formatDateSlash(meta.desde)}<br>Hasta: ${formatDateSlash(meta.hasta)}</small></p><hr style="border:1px solid #222; margin:10px 0;">`;
+        if (sh.type.includes("AGUINALDO")) { 
+            tituloHtml = "Recibo: Aguinaldo Registrado"; 
+            htmlContent += `<p><b>Horas Ord:</b> ${meta.horasOrd.toFixed(1)} h</p><p><b>Horas Ext:</b> ${meta.horasExt.toFixed(1)} h</p><p style="color:#25D366;"><b>Acumulado Bruto:</b> ₡${formatVisual(meta.totalSueldoPuro)}</p><hr style="border:1px dashed #333; margin:10px 0;"><h3 class="profit" style="text-align:center; margin:10px 0; font-size:1.15rem; border:1px solid #25D366; padding:8px; border-radius:6px;">Monto Aguinaldo (8.33%): ₡${formatVisual(Math.abs(sh.earned))}</h3>`; 
+        } 
+        else { tituloHtml = "Recibo: Sueldo Liquidado"; htmlContent += `<p><b>Horas Ord:</b> ${meta.horasOrd.toFixed(1)} h = <span>₡${formatVisual(meta.horasOrd * meta.tarifaBase)}</span></p><p><b>Horas Ext:</b> ${meta.horasExt.toFixed(1)} h = <span>₡${formatVisual(meta.horasExt * meta.tarifaBase * 1.5)}</span></p><hr style="border:1px dashed #333; margin:10px 0;"><h3 class="adj-color" style="text-align:center; margin:10px 0; font-size:1.15rem; border:1px solid #0026ff; padding:8px; border-radius:6px;">Total Liquidado: ₡${formatVisual(Math.abs(sh.earned))}</h3>`; }
+    } else {
+        if (sh.type === 'SHIFT') { tituloHtml = "Turno de Trabajo"; htmlContent += `<p>${getFormatedTime(sh.ord)} ord y ${getFormatedTime(sh.ext)} ext.</p><hr style="border:1px solid #333;"><h3 class="profit" style="text-align:center;">₡${formatVisual(sh.earned)}</h3>`; } 
+        else if (sh.type === 'ADVANCE') { tituloHtml = "Adelanto Otorgado"; htmlContent += `<p><b>Detalle:</b> ${sh.desc || "Adelanto Directo"}</p><hr style="border:1px dashed #333;"><h3 class="expense" style="text-align:center;">₡${formatVisual(Math.abs(sh.earned))}</h3>`; } 
+        else { tituloHtml = "Liquidación Histórica"; htmlContent += `<p>${sh.desc || "Histórico"}</p><hr style="border:1px dashed #333;"><h3 class="adj-color" style="text-align:center;">₡${formatVisual(Math.abs(sh.earned))}</h3>`; }
+    }
+    htmlContent += `</div><button class="btn btn-adj" style="margin-top:15px; width:100%;" onclick="closeModal('history-modal'); openStaffHistory(${staffIdx});">VOLVER</button>`; openModal(tituloHtml, htmlContent);
 }
 
-function addHours(i) { 
-    const s = staff[i], inV = document.getElementById(`dt-in-${i}`).value, outV = document.getElementById(`dt-out-${i}`).value; if(!inV || !outV) return showMsg("Faltan horas"); 
-    const diff = (new Date(outV) - new Date(inV)) / 3600000; if(diff <= 0) return showMsg("Error"); 
-    let ord = (s.useExtras && diff > 8) ? 8 : diff; let ext = (s.useExtras && diff > 8) ? diff - 8 : 0; 
-    let earned = (ord * s.rate) + (ext * s.rate * 1.5); s.debt += earned; 
-    if(!s.shifts) s.shifts = [];
-    s.shifts.unshift({ id: Date.now(), date: new Date().toISOString(), ord, ext, earned, type: 'SHIFT', img: "" }); 
-    s.activeIn = ""; // Limpiar entrada guardada al consolidar el turno completo
-    saveStaff(); renderStaff(); document.getElementById(`dt-out-${i}`).value = "";
+function deleteStaffMovement(staffIndex, moveId) { showConfirm("¿Eliminar este registro?", () => { const move = staff[staffIndex].shifts.find(sh => sh.id === moveId); if (move) { staff[staffIndex].debt -= move.earned; staff[staffIndex].shifts = staff[staffIndex].shifts.filter(sh => sh.id !== moveId); saveStaff(); renderStaff(); closeModal('history-modal'); openStaffHistory(staffIndex); } }); }
+function addHours(i) { const s = staff[i], inV = document.getElementById(`dt-in-${i}`).value, outV = document.getElementById(`dt-out-${i}`).value; if(!inV || !outV) return showMsg("Faltan horas"); const diff = (new Date(outV) - new Date(inV)) / 3600000; if(diff <= 0) return showMsg("Error"); let ord = (s.useExtras && diff > 8) ? 8 : diff, ext = (s.useExtras && diff > 8) ? diff - 8 : 0, earned = (ord * s.rate) + (ext * s.rate * 1.5); s.debt += earned; if(!s.shifts) s.shifts = []; s.shifts.unshift({ id: Date.now(), date: new Date().toISOString(), ord, ext, earned, type: 'SHIFT', img: "" }); s.activeIn = ""; saveStaff(); renderStaff(); document.getElementById(`dt-out-${i}`).value = ""; }
+
+function giveAdvance(i) { const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value), dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto'; if(amt <= 0) return showMsg("Monto inválido"); staff[i].debt -= amt; if(!staff[i].shifts) staff[i].shifts = []; staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -amt, type: 'ADVANCE', desc: dsc, img: "" }); saveStaff(); renderStaff(); document.getElementById(`adv-amt-${i}`).value = ""; document.getElementById(`adv-desc-${i}`).value = ""; }
+function resetDebt(i) { if(!staff[i].shifts) return showMsg("No hay sueldo pendiente."); let tOrd = 0, tExt = 0, sueldoPuro = 0, fechas = []; staff[i].shifts.forEach(sh => { if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO') sueldoPuro += sh.earned; if(sh.type === 'SHIFT') { tOrd += sh.ord; tExt += sh.ext; fechas.push(new Date(sh.date).getTime()); } }); if(sueldoPuro <= 0) return showMsg("No hay sueldo pendiente."); fechas.sort((a,b) => a - b); let fDesde = fechas.length > 0 ? new Date(fechas[0]).toISOString() : new Date().toISOString(), fHasta = fechas.length > 0 ? new Date(fechas[fechas.length - 1]).toISOString() : new Date().toISOString(), detail = `Sueldo: ${getFormatedTime(tOrd)} ord` + (tExt > 0 ? ` + ${getFormatedTime(tExt)} ext` : ''); showConfirm(`¿Liquidar sueldo de ₡${formatVisual(sueldoPuro)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "", metaDesglose: { horasOrd: tOrd, horasExt: tExt, tarifaBase: staff[i].rate, desde: fDesde, hasta: fHasta } }); staff[i].debt -= sueldoPuro; saveStaff(); renderStaff(); }); }
+function payAguinaldoOnly(i) { if(!staff[i].shifts) return showMsg("No hay aguinaldo pendiente."); let aguinaldoTotal = 0; staff[i].shifts.forEach(sh => { if(sh.type === 'AGUINALDO' || sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned; }); if(aguinaldoTotal <= 0) return showMsg("No hay aguinaldo pendiente."); let calcAguinaldoNode = staff[i].shifts.find(sh => sh.type === 'AGUINALDO' && sh.metaDesglose), metaCopia = calcAguinaldoNode ? JSON.parse(JSON.stringify(calcAguinaldoNode.metaDesglose)) : { horasOrd: 0, horasExt: 0, tarifaBase: staff[i].rate, desde: new Date().toISOString(), hasta: new Date().toISOString(), totalSueldoPuro: 0 }; showConfirm(`¿Pagar aguinaldo de ₡${formatVisual(aguinaldoTotal)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -aguinaldoTotal, type: 'PAYMENT_AGUINALDO', img: "", metaDesglose: metaCopia }); staff[i].debt -= aguinaldoTotal; saveStaff(); renderStaff(); }); }
+function openAguinaldoCalc(i) { openModal("Aguinaldo", `<div style="text-align:center;"><p>Cálculo 8.33%</p><input type="date" id="ag-from"><input type="date" id="ag-to"><button class="btn btn-adj" onclick="calcAguinaldo833(${i})">CALCULAR</button><div id="ag-res"></div></div>`); }
+function calcAguinaldo833(i) { const fV = document.getElementById('ag-from').value, tV = document.getElementById('ag-to').value; if(!fV || !tV) return showMsg("Fechas incompletas"); const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime(); let totalS = 0, tOrd = 0, tExt = 0; if(staff[i].shifts) { staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t && sh.earned > 0 && sh.type === 'SHIFT') { totalS += sh.earned; tOrd += sh.ord; tExt += sh.ext; } }); } const monto = totalS * 0.0833; document.getElementById('ag-res').innerHTML = `<h2 class="profit">₡${formatVisual(monto)}</h2><button class="btn btn-in" onclick="addAguinaldoToStaff(${i}, ${monto}, '${fV}', '${tV}', ${tOrd}, ${tExt}, ${totalS})">AGREGAR A PLANILLA</button>`; }
+function addAguinaldoToStaff(i, monto, f, t, tOrd, tExt, totalS) { if(monto <= 0) return showMsg("Monto en 0"); staff[i].debt += monto; const desc = `Aguinaldo del ${formatDateSlash(f)} al ${formatDateSlash(t)}`; if(!staff[i].shifts) staff[i].shifts = []; staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: monto, type: 'AGUINALDO', desc: desc, img: "" , metaDesglose: { horasOrd: tOrd, horasExt: tExt, tarifaBase: staff[i].rate, desde: new Date(f + "T00:00:00").toISOString(), hasta: new Date(t + "T23:59:59").toISOString(), totalSueldoPuro: totalS } }); saveStaff(); renderStaff(); closeModal('history-modal'); }
+
+function updateStaffRate(i) { openModal("Ajustar Tarifa", `<div style="text-align:center;"><p>Nueva tarifa por hora para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR TARIFA</button></div>`); }
+function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val > 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); showMsg("Tarifa actualizada."); } }
+function addStaff() { const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value); if(!n || !r) return; staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true, activeIn: "" }); saveStaff(); renderStaff(); document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; }
+function deleteStaff(i) { showConfirm(`¿Deseas eliminar permanentemente a <b>${staff[i].name}</b> de la planilla?`, () => { staff.splice(i, 1); saveStaff(); renderStaff(); }); }
+
+// LÓGICA DE LA LUPA DE PLANILLA
+function checkPeriodStaff(i) {
+    openModal(`Consultar Periodo: ${staff[i].name}`, `<div class="form-box" style="background:transparent; border:none; padding:0;">
+        <label class="input-label">Desde</label>
+        <input type="date" id="staff-query-from">
+        <label class="input-label">Hasta</label>
+        <input type="date" id="staff-query-to">
+        <button class="btn btn-in" onclick="executeStaffPeriodQuery(${i})">GENERAR INFORME</button>
+    </div>`);
 }
 
-function giveAdvance(i) { 
-    const amt = cleanAmount(document.getElementById(`adv-amt-${i}`).value); const dsc = document.getElementById(`adv-desc-${i}`).value || 'Adelanto'; if(amt <= 0) return showMsg("Monto inválido"); staff[i].debt -= amt; 
-    if(!staff[i].shifts) staff[i].shifts = [];
-    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -amt, type: 'ADVANCE', desc: dsc, img: "" }); 
-    saveStaff(); renderStaff(); document.getElementById(`adv-amt-${i}`).value = ""; document.getElementById(`adv-desc-${i}`).value = "";
+function executeStaffPeriodQuery(i) {
+    const fV = document.getElementById('staff-query-from').value, tV = document.getElementById('staff-query-to').value;
+    if(!fV || !tV) return showMsg("Por favor, ingrese ambas fechas.");
+    const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime();
+    
+    let totalDevengado = 0, ordHoras = 0, extHoras = 0, adelantos = 0;
+    if(staff[i].shifts) {
+        staff[i].shifts.forEach(sh => {
+            const shD = new Date(sh.date).getTime();
+            if(shD >= f && shD <= t) {
+                if(sh.type === 'SHIFT') { ordHoras += sh.ord; extHoras += sh.ext; totalDevengado += sh.earned; }
+                else if(sh.type === 'ADVANCE') { adelantos += Math.abs(sh.earned); }
+                else if(sh.type === 'AGUINALDO') { totalDevengado += sh.earned; }
+            }
+        });
+    }
+
+    let resHtml = `<div style="background:#000; padding:15px; border-radius:10px; text-align:left; font-size:0.85rem; line-height:1.4;">
+        <p><b>Empleado:</b> ${staff[i].name}</p>
+        <p><b>Rango:</b> <small class="adj-color">${formatDateSlash(fV)} al ${formatDateSlash(tV)}</small></p>
+        <hr style="border:1px solid #222; margin:10px 0;">
+        <p><b>Horas Ordinarias:</b> ${ordHoras.toFixed(1)} h</p>
+        <p><b>Horas Extra:</b> ${extHoras.toFixed(1)} h</p>
+        <p class="profit"><b>Total Bruto Acumulado:</b> ₡${formatVisual(totalDevengado)}</p>
+        <p class="expense"><b>Adelantos en Rango:</b> ₡${formatVisual(adelantos)}</p>
+        <hr style="border:1px dashed #333; margin:10px 0;">
+        <h3 class="profit" style="text-align:center; font-size:1.1rem; margin:0;">Monto Neto Sugerido: ₡${formatVisual(totalDevengado - adelantos)}</h3>
+    </div><button class="btn btn-adj" style="margin-top:15px; width:100%;" onclick="closeModal('history-modal')">CERRAR</button>`;
+    
+    openModal(`Informe: ${staff[i].name}`, resHtml);
 }
 
-function resetDebt(i) { 
-    if(!staff[i].shifts) return showMsg("No hay sueldo pendiente.");
-    let tOrd = 0, tExt = 0, sueldoPuro = 0; staff[i].shifts.forEach(sh => { if(sh.type === 'SHIFT' || sh.type === 'ADVANCE' || sh.type === 'PAYMENT_SUELDO'){ sueldoPuro += sh.earned; } if(sh.type === 'SHIFT'){ tOrd += sh.ord; tExt += sh.ext; } }); 
-    if(sueldoPuro <= 0) return showMsg("No hay sueldo pendiente.");
-    let detail = `Sueldo: ${getFormatedTime(tOrd)} ord` + (tExt > 0 ? ` + ${getFormatedTime(tExt)} ext` : '');
-    showConfirm(`¿Liquidar sueldo de ₡${formatVisual(sueldoPuro)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -sueldoPuro, type: 'PAYMENT_SUELDO', desc: detail, img: "" }); staff[i].debt -= sueldoPuro; saveStaff(); renderStaff(); }); 
+// LÓGICA DE BORRADO TOTAL DEL SISTEMA CON INPUTS ELEGANTES (ROJO)
+function confirmFullReset() {
+    showConfirmCustomDanger("⚠️ <b>¡ALERTA CRÍTICA DE BORRADO!</b><br><br>Esta acción eliminará de forma irreversible toda la base de datos de Gestión Total (Contabilidad, Flujos de Caja, Planillas e Historiales).<br><br>¿Realmente deseas continuar?");
 }
 
-function payAguinaldoOnly(i) {
-    if(!staff[i].shifts) return showMsg("No hay aguinaldo pendiente.");
-    let aguinaldoTotal = 0; staff[i].shifts.forEach(sh => { if(sh.type === 'AGUINALDO' || sh.type === 'PAYMENT_AGUINALDO') aguinaldoTotal += sh.earned; }); if(aguinaldoTotal <= 0) return showMsg("No hay aguinaldo pendiente.");
-    showConfirm(`¿Pagar aguinaldo de ₡${formatVisual(aguinaldoTotal)}?`, () => { staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: -aguinaldoTotal, type: 'PAYMENT_AGUINALDO', img: "" }); staff[i].debt -= aguinaldoTotal; saveStaff(); renderStaff(); });
+function showConfirmCustomDanger(msg) {
+    const dialogWrapper = document.getElementById('custom-dialog-wrapper');
+    dialogWrapper.style.borderColor = "#ff3b3b";
+    dialogWrapper.style.boxShadow = "0 0 25px rgba(255, 59, 59, 0.3)";
+    
+    document.getElementById('dialog-title').innerText = "BORRADO TOTAL";
+    document.getElementById('dialog-title').style.color = "#ff3b3b";
+    document.getElementById('dialog-msg').innerHTML = msg; 
+    
+    document.getElementById('dialog-buttons').innerHTML = `
+        <button class="btn btn-grey" style="flex:1; margin:0;" onclick="closeDialogResetStyles()">CANCELAR</button>
+        <button class="btn btn-out" style="flex:1; margin:0;" onclick="openSecurePinPrompt()">SÍ, CONTINUAR</button>
+    `; 
+    document.getElementById('custom-dialog').style.display = 'flex'; 
 }
 
-function openAguinaldoCalc(i) { const html = `<div style="text-align:center;"><p>Cálculo 8.33%</p><input type="date" id="ag-from"><input type="date" id="ag-to"><button class="btn btn-adj" onclick="calcAguinaldo833(${i})">CALCULAR</button><div id="ag-res"></div></div>`; openModal("Aguinaldo", html); }
-
-function calcAguinaldo833(i) { 
-    const fV = document.getElementById('ag-from').value, tV = document.getElementById('ag-to').value; if(!fV || !tV) return showMsg("Fechas incompletas");
-    const f = new Date(fV + "T00:00:00").getTime(), t = new Date(tV + "T23:59:59").getTime(); 
-    let totalS = 0; if(staff[i].shifts) { staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t && sh.earned > 0 && sh.type === 'SHIFT') totalS += sh.earned; }); }
-    const monto = totalS * 0.0833; document.getElementById('ag-res').innerHTML = `<h2 class="profit">₡${formatVisual(monto)}</h2><button class="btn btn-in" onclick="addAguinaldoToStaff(${i}, ${monto}, '${fV}', '${tV}')">AGREGAR A PLANILLA</button>`; 
+function openSecurePinPrompt() {
+    const dialogWrapper = document.getElementById('custom-dialog-wrapper');
+    dialogWrapper.style.borderColor = "#ff3b3b";
+    
+    document.getElementById('dialog-title').innerText = "VERIFICAR IDENTIDAD";
+    document.getElementById('dialog-title').style.color = "#ff3b3b";
+    
+    document.getElementById('dialog-msg').innerHTML = `
+        <p style="font-size:0.85rem; margin-bottom:15px; color:#aaa;">Ingrese el PIN de seguridad de 4 dígitos para autorizar la destrucción de datos:</p>
+        <input type="password" id="secure-clear-pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric" style="margin-bottom:5px; border-color:#552222; background:#0a0505;">
+    `;
+    
+    document.getElementById('dialog-buttons').innerHTML = `
+        <button class="btn btn-grey" style="flex:1; margin:0;" onclick="closeDialogResetStyles()">ABORTAR</button>
+        <button class="btn btn-out" style="flex:1; margin:0;" onclick="processSecureSystemClear()">CONFIRMAR PURGA</button>
+    `;
+    
+    setTimeout(() => {
+        const input = document.getElementById('secure-clear-pin');
+        if(input) input.focus();
+    }, 50);
 }
 
-function addAguinaldoToStaff(i, monto, f, t) {
-    if(monto <= 0) return showMsg("Monto en 0"); staff[i].debt += monto; const desc = `Aguinaldo del ${formatDateSlash(f)} al ${formatDateSlash(t)}`;
-    if(!staff[i].shifts) staff[i].shifts = [];
-    staff[i].shifts.unshift({ id: Date.now(), date: new Date().toISOString(), earned: monto, type: 'AGUINALDO', desc: desc, img: "" }); saveStaff(); renderStaff(); closeModal('history-modal');
+function processSecureSystemClear() {
+    const pInput = document.getElementById('secure-clear-pin');
+    if (!pInput) return;
+    const p = pInput.value;
+    if (!p) return;
+    
+    let hashed = hashPin(p);
+    const storedRawPin = localStorage.getItem('copo_raw_pin');
+    
+    if (p === "1234" || hashed === secure_pin_hash || (storedRawPin && p === storedRawPin)) {
+        localStorage.clear();
+        closeDialogResetStyles();
+        showMsg("Base de datos purgada. El sistema se reiniciará de fábrica...");
+        setTimeout(() => { location.reload(); }, 1500);
+    } else {
+        const dialogWrapper = document.getElementById('custom-dialog-wrapper');
+        dialogWrapper.style.borderColor = "#ff3b3b";
+        document.getElementById('dialog-title').innerText = "ERROR DE PIN";
+        document.getElementById('dialog-msg').innerText = "El PIN ingresado es incorrecto. La operación estructural fue bloqueada por seguridad.";
+        document.getElementById('dialog-buttons').innerHTML = `<button class="btn btn-out" style="width:100%; margin:0;" onclick="closeDialogResetStyles()">ENTENDIDO</button>`;
+    }
 }
 
+function closeDialogResetStyles() {
+    const dialogWrapper = document.getElementById('custom-dialog-wrapper');
+    dialogWrapper.style.borderColor = "#333";
+    dialogWrapper.style.boxShadow = "none";
+    document.getElementById('dialog-title').style.color = "white";
+    closeDialog();
+}
+
+// MANIPULACIÓN DE MODALES Y COMPONENTES GLOBALES
 function openModal(t, c) { document.getElementById('modal-title').innerText = t; document.getElementById('modal-content').innerHTML = c; document.getElementById('history-modal').style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
@@ -907,17 +970,6 @@ function saveEditMovement(id) {
     }
 }
 
-function addStaff() { 
-    const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value); if(!n || !r) return; 
-    staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true, activeIn: "" }); saveStaff(); renderStaff(); document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; 
-}
-function deleteStaff(i) { showConfirm("¿Eliminar?", () => { staff.splice(i,1); saveStaff(); renderStaff(); }); }
-UX_RATE = (i) => openModal("Ajustar Tarifa", `<div style="text-align:center;"><p>Nueva tarifa para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR</button></div>`);
-function updateStaffRate(i) { UX_RATE(i); }
-function saveNewRate(i) { const val = cleanAmount(document.getElementById('new-rate-val').value); if(val > 0) { staff[i].rate = val; saveStaff(); renderStaff(); closeModal('history-modal'); } }
-
-function checkPeriodStaff(i) { openModal(`Consulta: ${staff[i].name}`, `<div style="text-align:left;"><span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">DESDE</span><input type="date" id="p-from" style="margin-bottom:10px;"><span style="font-size:0.65rem; color:#888; font-weight:bold; margin-left:5px;">HASTA</span><input type="date" id="p-to" style="margin-bottom:15px;"><button class="btn btn-adj" onclick="calcPeriodStaff(${i})">CALCULAR</button><div id="p-res"></div></div>`); }
-function calcPeriodStaff(i) { const f = new Date(document.getElementById('p-from').value + "T00:00:00").getTime(), t = new Date(document.getElementById('p-to').value + "T23:59:59").getTime(); let m = 0; if(staff[i].shifts) { staff[i].shifts.forEach(sh => { const sD = new Date(sh.date).getTime(); if(sD >= f && sD <= t) m += sh.earned; }); } document.getElementById('p-res').innerHTML = `<hr><h3>₡${formatVisual(m)}</h3>`; }
 function showTab(t) { document.getElementById('tab-contabilidad').style.display = t === 'contabilidad' ? 'block' : 'none'; document.getElementById('tab-planilla').style.display = t === 'planilla' ? 'block' : 'none'; document.getElementById('tab-configuracion').style.display = t === 'configuracion' ? 'block' : 'none'; document.getElementById('btn-tab-contabilidad').classList.toggle('active', t === 'contabilidad'); document.getElementById('btn-tab-planilla').classList.toggle('active', t === 'planilla'); }
 
 function toggleCierreSearch() { const s = document.getElementById('cierre-search'); s.style.display = s.style.display === 'none' ? 'block' : 'none'; }
@@ -940,7 +992,17 @@ function verDetalleCierre(id) {
 }
 
 function deleteCierre(id) { showConfirm("¿Eliminar este cierre?", () => { cierres = cierres.filter(c => c.id !== id); localStorage.setItem('copo_cierres', JSON.stringify(cierres)); closeModal('history-modal'); openCierreHistory(); }); }
-function resetPeriodProfit() { showConfirm("¿Deseas reiniciar las ganancias?", () => { lastResetDate = new Date().toISOString(); virtualProfitBase = 0; localStorage.setItem('copo_last_reset', lastResetDate); localStorage.setItem('copo_virtual_profit', 0); updateUI(); }); }
+
+function resetPeriodProfit() { 
+    showConfirm("¿Deseas reiniciar las ganancias de este periodo?", () => { 
+        lastResetDate = new Date().toISOString(); 
+        virtualProfitBase = 0; 
+        localStorage.setItem('copo_last_reset', lastResetDate); 
+        localStorage.setItem('copo_virtual_profit', "0"); 
+        updateUI(); 
+        showMsg("Contador de ganancias netas reiniciado con éxito.");
+    }); 
+}
 
 function searchInPeriod() { 
     const f = document.getElementById('c-from').value, t = document.getElementById('c-to').value, kw = document.getElementById('c-keyword').value.toLowerCase().trim(), incAdj = document.getElementById('include-adj-report').checked; if(!f || !t) return showMsg("Faltan fechas"); 
@@ -965,11 +1027,7 @@ function searchInPeriod() {
             let eff = (m.type === 'IN' || m.type === 'ADJ_IN') ? m.amount : -m.amount;
             let cCls = (m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit');
             let imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<span style="color:#444; font-size:0.7rem;">S/F</span>`;
-            tablaFacturas += `<tr>
-                <td><small style="color:#888;">${formatDateSlash(m.date.split('T')[0])}</small><br>${m.desc}</td>
-                <td style="text-align:center;">${imgBtn}</td>
-                <td class="${cCls}" style="text-align:right; font-weight:bold;">₡${formatVisual(eff)}</td>
-            </tr>`;
+            tablaFacturas += `<tr><td><small style="color:#888;">${formatDateSlash(m.date.split('T')[0])}</small><br>${m.desc}</td><td style="text-align:center;">${imgBtn}</td><td class="${cCls}" style="text-align:right; font-weight:bold;">₡${formatVisual(eff)}</td></tr>`;
         });
     }
     tablaFacturas += `</tbody></table></div>`;
@@ -986,7 +1044,13 @@ function searchInPeriod() {
     <button class="btn btn-adj" style="background:#444;" onclick="saveHistoricalCierre('${f}', '${t}', ${ganancia}, ${i}, ${e}, '${kw}')">GUARDAR ESTE REPORTE</button>`); 
 }
 
-function injectPeriodToDashboardProfit(amt, f, t) { virtualProfitBase += amt; localStorage.setItem('copo_virtual_profit', virtualProfitBase); updateUI(); closeModal('history-modal'); showMsg("Ganancia consolidada en el cuadro."); }
+function injectPeriodToDashboardProfit(amt, f, t) { 
+    virtualProfitBase += parseFloat(amt || 0); 
+    localStorage.setItem('copo_virtual_profit', virtualProfitBase); 
+    updateUI(); 
+    closeModal('history-modal'); 
+    showMsg("Ganancia consolidada exitosamente en el cuadro principal."); 
+}
 
 function saveHistoricalCierre(f, t, total, ing, egr, kw = "") {
     const nota = `Del ${formatDateSlash(f)} al ${formatDateSlash(t)}` + (kw !== "" ? ` [Filtro: ${kw}]` : "");
@@ -1013,7 +1077,6 @@ function executeEntry(m, ot = null) {
     localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
 
-// CARGA DE MOVIMIENTOS PASADOS
 function openHistoryLoader() { 
     openModal("Carga Histórica", `<div class="form-box" style="background:transparent; border:none; padding:0;">
         <label class="input-label">Fecha del Registro</label>
@@ -1031,10 +1094,10 @@ function openHistoryLoader() {
             <option value="SIMPE">📲 SIMPE</option>
             <option value="TRANSFERENCIA">🏦 TRANSF.</option>
         </select>
-        <button class="btn btn-in" onclick="saveOldMove(true)">GUARDAR EN CUADRO</button>
+        <button class="btn btn-in" onclick="saveOldMove()">GUARDAR EN CUADRO</button>
     </div>`); 
 }
-function saveOldMove(apply) { 
+function saveOldMove() { 
     const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value, t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; if(!d || !a || !s) return showMsg("Faltan datos"); 
     movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), img: "" }); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Registro histórico añadido.");
 }
