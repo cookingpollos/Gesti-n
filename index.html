@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.0.9 - Edición Nube</title>
+<title>Gestión Total 7.2.0 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -63,7 +63,6 @@ td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 
 .row-cap-base { color: #ff9900 !important; font-weight: bold; background: rgba(255, 153, 0, 0.1); }
 
-/* COLOR DE CRÉDITO IDENTIFICABLE: Morado Eléctrico para deudas activas */
 .credit-color { color: #9b59b6 !important; }
 .row-credit-pending { color: #9b59b6 !important; background: rgba(155, 89, 182, 0.06); }
 
@@ -107,7 +106,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.0.9 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.2.0 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -258,7 +257,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.9 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.2.0 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -277,7 +276,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     </div>
 </div>
 
-<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal()">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
+<div id="method-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeMethodModal('method-modal')">×</span><h3 style="color:white; margin-bottom:15px;">Método de Pago</h3><button class="btn btn-adj" onclick="executeEntry('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="executeEntry('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="executeEntry('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="executeEntry('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
 
 <div id="credit-release-modal" class="modal"><div class="modal-content-wrapper"><span class="close-x" onclick="closeModal('credit-release-modal')">×</span><h3 style="color:white; margin-bottom:15px;">Liberar Crédito: ¿Cómo pagaron?</h3><button class="btn btn-adj" onclick="releaseCreditToCashflow('EFECTIVO')">💵 EFECTIVO</button><button class="btn btn-adj" onclick="releaseCreditToCashflow('TARJETA')">💳 TARJETA</button><button class="btn btn-adj" onclick="releaseCreditToCashflow('SIMPE')">📲 SIMPE</button><button class="btn btn-adj" onclick="releaseCreditToCashflow('TRANSFERENCIA')">🏦 TRANSF.</button></div></div>
 
@@ -526,7 +525,6 @@ function updateUI() {
         
         let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE' || m.type === 'CREDIT_PENDING') ? m.amount : -m.amount;
         
-        // CIRUGÍA VIOLETA: Si es crédito pendiente hereda la clase 'credit-color', si es muro el naranja base
         let colorClass = isCap ? 'cash-color' : (isCredit ? 'credit-color' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit')));
         const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
         
@@ -606,7 +604,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.0.9", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
+        version: "7.2.0", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
@@ -663,6 +661,42 @@ function saveStaff() {
     localStorage.setItem('copo_staff', JSON.stringify(staff)); 
 }
 
+// LÓGICA DE MANIPULACIÓN DEL MÓDULO PLANILLA
+function toggleStaff(i) {
+    const bars = document.querySelectorAll('.staff-bar');
+    if(bars[i]) {
+        bars[i].classList.toggle('active');
+    }
+}
+
+function toggleFeature(i, prop) {
+    if(staff[i]) {
+        staff[i][prop] = !staff[i][prop];
+        saveStaff();
+    }
+}
+
+function fixStaffEntryTime(i) {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    const localISO = new Date(now.getTime() - offset).toISOString().slice(0, 16);
+    
+    if(staff[i]) {
+        staff[i].activeIn = localISO;
+        saveStaff();
+        renderStaff();
+        showMsg(`Hora de entrada fijada y respaldada para ${staff[i].name}.`);
+    }
+}
+
+function clearStaffEntryTime(i) {
+    if(staff[i]) {
+        staff[i].activeIn = "";
+        saveStaff();
+        renderStaff();
+    }
+}
+
 function renderStaff() {
     const list = document.getElementById('staff-list'); list.innerHTML = "";
     staff.forEach((s, i) => {
@@ -675,7 +709,19 @@ function renderStaff() {
                 else if(sh.type === 'PAYMENT_SUELDO') sueldoTotal += sh.earned;
             });
         }
-        list.innerHTML += `<div class="staff-bar"><div class="staff-header-bar" onclick="toggleStaff(${i})"><b>${s.name}</b><div style="text-align:right"><span style="font-size:0.85rem">Sueldo: ₡${formatVisual(sueldoTotal)}</span>${aguinaldoTotal > 0 ? `<br><span style="font-size:0.75rem; color:#ff9900">Agui: ₡${formatVisual(aguinaldoTotal)}</span>` : ''}</div></div><div class="staff-content"><p style="font-size:0.8rem; color:#888;">Tarifa: ₡${formatVisual(s.rate)}/h</p><div class="toggle-box"><span>Pago Horas Extras (x1.5)</span><label class="switch"><input type="checkbox" ${s.useExtras ? 'checked' : ''} onchange="toggleFeature(${i}, 'useExtras')"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; margin-bottom:15px;"><button class="btn-icon" style="color:#ff9900" onclick="openAguinaldoCalc(${i})"><i class="fas fa-piggy-bank"></i></button><button class="btn-icon" style="color:#3498db" onclick="openStaffHistory(${i})"><i class="fas fa-history"></i></button><button class="btn-icon" style="color:#25D366" onclick="checkPeriodStaff(${i})"><i class="fas fa-search"></i></button><button class="btn-icon" style="color:#0026ff" onclick="updateStaffRate(${i})"><i class="fas fa-tag"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaff(${i})"><i class="fas fa-trash"></i></button></div><label class="input-label">Hora Entrada</label><input type="datetime-local" id="dt-in-${i}" style="margin-bottom:10px;"><label class="input-label">Hora Salida</label><input type="datetime-local" id="dt-out-${i}"><button class="btn btn-in" style="margin-top:10px;" onclick="addHours(${i})">ANOTAR TURNO</button><div style="background:#000; padding:15px; border-radius:10px; margin-top:10px;"><input type="text" id="adv-desc-${i}" placeholder="Detalle de adelanto..." style="margin-bottom:8px;"><input type="text" id="adv-amt-${i}" placeholder="₡ Monto Adelanto" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-advance" onclick="giveAdvance(${i})">REGISTRAR ADELANTO</button></div><button class="btn btn-pay" style="margin-top:10px;" onclick="resetDebt(${i})">PAGAR SUELDO</button>${aguinaldoTotal > 0 ? `<button class="btn btn-aguinaldo" onclick="payAguinaldoOnly(${i})">PAGAR AGUINALDO</button>` : ''}</div></div>`;
+        
+        // Cargar entrada fija de base de datos si existe
+        const savedInTime = s.activeIn || "";
+        
+        list.innerHTML += `<div class="staff-bar"><div class="staff-header-bar" onclick="toggleStaff(${i})"><b>${s.name}</b><div style="text-align:right"><span style="font-size:0.85rem">Sueldo: ₡${formatVisual(sueldoTotal)}</span>${aguinaldoTotal > 0 ? `<br><span style="font-size:0.75rem; color:#ff9900">Agui: ₡${formatVisual(aguinaldoTotal)}</span>` : ''}</div></div><div class="staff-content"><p style="font-size:0.8rem; color:#888;">Tarifa: ₡${formatVisual(s.rate)}/h</p><div class="toggle-box"><span>Pago Horas Extras (x1.5)</span><label class="switch"><input type="checkbox" ${s.useExtras ? 'checked' : ''} onchange="toggleFeature(${i}, 'useExtras')"><span class="slider"></span></label></div><div style="display:flex; justify-content:space-between; margin-bottom:15px;"><button class="btn-icon" style="color:#ff9900" onclick="openAguinaldoCalc(${i})"><i class="fas fa-piggy-bank"></i></button><button class="btn-icon" style="color:#3498db" onclick="openStaffHistory(${i})"><i class="fas fa-history"></i></button><button class="btn-icon" style="color:#25D366" onclick="checkPeriodStaff(${i})"><i class="fas fa-search"></i></button><button class="btn-icon" style="color:#0026ff" onclick="updateStaffRate(${i})"><i class="fas fa-tag"></i></button><button class="btn-icon" style="color:#ff3b3b" onclick="deleteStaff(${i})"><i class="fas fa-trash"></i></button></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+            <label class="input-label" style="margin:0;">Hora Entrada</label>
+            <div>
+                <button onclick="fixStaffEntryTime(${i})" style="background: #113311; color: #25D366; border: 1px solid #225522; border-radius: 4px; font-size: 0.65rem; padding: 2px 6px; cursor: pointer; font-weight: bold;"><i class="fas fa-bolt"></i> FIJAR AHORA</button>
+                ${savedInTime ? `<button onclick="clearStaffEntryTime(${i})" style="background: transparent; color: #ff3b3b; border: none; font-size: 0.65rem; cursor: pointer; margin-left: 5px;"><i class="fas fa-times"></i></button>` : ''}
+            </div>
+        </div>
+        <input type="datetime-local" id="dt-in-${i}" value="${savedInTime}" onchange="staff[${i}].activeIn=this.value; saveStaff();" style="margin-bottom:10px;"><label class="input-label">Hora Salida</label><input type="datetime-local" id="dt-out-${i}"><button class="btn btn-in" style="margin-top:10px;" onclick="addHours(${i})">ANOTAR TURNO</button><div style="background:#000; padding:15px; border-radius:10px; margin-top:10px;"><input type="text" id="adv-desc-${i}" placeholder="Detalle de adelanto..." style="margin-bottom:8px;"><input type="text" id="adv-amt-${i}" placeholder="₡ Monto Adelanto" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-advance" onclick="giveAdvance(${i})">REGISTRAR ADELANTO</button></div><button class="btn btn-pay" style="margin-top:10px;" onclick="resetDebt(${i})">PAGAR SUELDO</button>${aguinaldoTotal > 0 ? `<button class="btn btn-aguinaldo" onclick="payAguinaldoOnly(${i})">PAGAR AGUINALDO</button>` : ''}</div></div>`;
     });
 }
 
@@ -710,7 +756,8 @@ function addHours(i) {
     let earned = (ord * s.rate) + (ext * s.rate * 1.5); s.debt += earned; 
     if(!s.shifts) s.shifts = [];
     s.shifts.unshift({ id: Date.now(), date: new Date().toISOString(), ord, ext, earned, type: 'SHIFT', img: "" }); 
-    saveStaff(); renderStaff(); document.getElementById(`dt-in-${i}`).value = ""; document.getElementById(`dt-out-${i}`).value = "";
+    s.activeIn = ""; // Limpiar entrada guardada al consolidar el turno completo
+    saveStaff(); renderStaff(); document.getElementById(`dt-out-${i}`).value = "";
 }
 
 function giveAdvance(i) { 
@@ -862,7 +909,7 @@ function saveEditMovement(id) {
 
 function addStaff() { 
     const n = document.getElementById('staff-name').value, r = cleanAmount(document.getElementById('staff-rate').value); if(!n || !r) return; 
-    staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true }); saveStaff(); renderStaff(); document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; 
+    staff.unshift({ name: n, rate: r, debt: 0, shifts: [], useExtras: true, activeIn: "" }); saveStaff(); renderStaff(); document.getElementById('staff-name').value = ""; document.getElementById('staff-rate').value = ""; 
 }
 function deleteStaff(i) { showConfirm("¿Eliminar?", () => { staff.splice(i,1); saveStaff(); renderStaff(); }); }
 UX_RATE = (i) => openModal("Ajustar Tarifa", `<div style="text-align:center;"><p>Nueva tarifa para <b>${staff[i].name}</b></p><input type="text" id="new-rate-val" placeholder="₡ Tarifa" oninput="formatCurrencyInput(this)" inputmode="decimal"><button class="btn btn-in" onclick="saveNewRate(${i})">GUARDAR</button></div>`);
@@ -966,6 +1013,7 @@ function executeEntry(m, ot = null) {
     localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeMethodModal(); closeAdjModal(); document.getElementById('amount').value = ""; document.getElementById('desc').value = ""; 
 }
 
+// CARGA DE MOVIMIENTOS PASADOS
 function openHistoryLoader() { 
     openModal("Carga Histórica", `<div class="form-box" style="background:transparent; border:none; padding:0;">
         <label class="input-label">Fecha del Registro</label>
