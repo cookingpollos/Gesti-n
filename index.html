@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.0.8 - Edición Nube</title>
+<title>Gestión Total 7.0.9 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -62,7 +62,10 @@ th { padding: 10px; text-align: left; color: #888; border-bottom: 1px solid #333
 td { padding: 10px; border-bottom: 1px solid #222; vertical-align: middle; }
 
 .row-cap-base { color: #ff9900 !important; font-weight: bold; background: rgba(255, 153, 0, 0.1); }
-.row-credit-pending { color: #ff9900 !important; background: rgba(255, 153, 0, 0.03); }
+
+/* COLOR DE CRÉDITO IDENTIFICABLE: Morado Eléctrico para deudas activas */
+.credit-color { color: #9b59b6 !important; }
+.row-credit-pending { color: #9b59b6 !important; background: rgba(155, 89, 182, 0.06); }
 
 .img-preview-mini { width: 35px; height: 35px; border-radius: 5px; object-fit: cover; cursor: pointer; border: 1px solid #333; }
 .btn-add-img { color: #0026ff; font-size: 1.2rem; cursor: pointer; background: none; border: none; }
@@ -104,7 +107,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.0.8 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.0.9 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -255,7 +258,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.8 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.0.9 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -322,7 +325,7 @@ let lastResetDate = localStorage.getItem('copo_last_reset') || new Date(0).toISO
 let bizData = JSON.parse(localStorage.getItem('copo_biz_data')) || { name: "CoPo Admin", owner: "", logo: "" };
 
 let currentUploadContext = { id: null, staffIdx: null };
-let selectedCreditId = null; // Puntero temporal para deudas saldadas
+let selectedCreditId = null; 
 window.pendingAction = null; 
 let pendingType = 'IN'; 
 
@@ -497,7 +500,6 @@ function updateUI() {
     mBank = lastCapBanco ? lastCapBanco.amount : 0;
 
     movements.forEach(m => {
-        // SEGURIDAD DE FILTRADO: Si el tipo es CREDIT_PENDING ignoramos el monto de los acumuladores contables
         if (m.type === 'CREDIT_PENDING') return;
 
         if (m.date > lastResetDate && !m.historical) { 
@@ -524,10 +526,10 @@ function updateUI() {
         
         let effect = (m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CAP_BASE' || m.type === 'CREDIT_PENDING') ? m.amount : -m.amount;
         
-        let colorClass = isCap ? 'cash-color' : (isCredit ? 'row-cap-base' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit')));
+        // CIRUGÍA VIOLETA: Si es crédito pendiente hereda la clase 'credit-color', si es muro el naranja base
+        let colorClass = isCap ? 'cash-color' : (isCredit ? 'credit-color' : ((m.type === 'OUT' || m.type === 'ADJ_OUT') ? 'expense' : (m.type.startsWith('ADJ') ? 'adj-color' : 'profit')));
         const imgBtn = m.img ? `<img src="${m.img}" class="img-preview-mini" onclick="zoomImage('${m.img}', ${m.id})">` : `<button class="btn-add-img" onclick="triggerFileSelect(${m.id})"><i class="fas fa-plus-circle"></i></button>`;
         
-        // Botón de cobro rápido para deudas vigentes
         let creditActionHtml = isCredit ? `<button class="btn-icon" style="color:#25D366" onclick="openCreditReleaseModal(${m.id})"><i class="fas fa-handshake"></i></button>` : '';
 
         body.innerHTML += `<tr class="${isCap ? 'row-cap-base' : (isCredit ? 'row-credit-pending' : '')}">
@@ -543,7 +545,6 @@ function updateUI() {
         </tr>`;
     });
 
-    // Setea el indicador numérico compacto de movimientos del tablero
     document.getElementById('mov-counter-val').innerText = visibleCounter;
 
     document.getElementById('val-bank').innerText = "₡" + formatVisual(mBank, 2);
@@ -552,7 +553,6 @@ function updateUI() {
     document.getElementById('net-profit').innerText = "₡" + formatVisual((tin - tout) + virtualProfitBase);
 }
 
-// GESTIÓN DE COBRO DE CRÉDITOS
 function openCreditReleaseModal(id) {
     selectedCreditId = id;
     document.getElementById('credit-release-modal').style.display = 'flex';
@@ -561,11 +561,10 @@ function openCreditReleaseModal(id) {
 function releaseCreditToCashflow(methodSelected) {
     const mIdx = movements.findIndex(m => m.id === selectedCreditId);
     if (mIdx !== -1) {
-        // Transformamos el movimiento en un ingreso neto legal para las cuentas de la app
         movements[mIdx].type = 'IN';
         movements[mIdx].method = methodSelected;
         movements[mIdx].desc = movements[mIdx].desc + ` (Saldado en ${methodSelected})`;
-        movements[mIdx].date = new Date().toISOString(); // Se asume fecha de caja del día de cobro
+        movements[mIdx].date = new Date().toISOString(); 
 
         localStorage.setItem('copo_data', JSON.stringify(movements));
         closeModal('credit-release-modal');
@@ -607,7 +606,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.0.8", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
+        version: "7.0.9", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
