@@ -499,11 +499,20 @@ function updateUI() {
     mCash = lastCapEfectivo ? lastCapEfectivo.amount : 0;
     mBank = lastCapBanco ? lastCapBanco.amount : 0;
 
+    let resetTimestamp = new Date(lastResetDate).getTime();
+
     movements.forEach(m => {
         if (m.type === 'CREDIT_PENDING' || m.method === 'USO EXTERNO') return;
 
-        // Si es histórico pero tiene activo el switch de afectar ganancias, se suma o resta en el cuadro principal
-        if ((m.date > lastResetDate && !m.historical) || m.affectProfit) { 
+        // REPARADO QUIRÚRGICAMENTE: Si es histórico, solo suma en el cuadro si tiene activo el switch Y fue inyectado en este periodo activo (id > resetTimestamp)
+        let affectsProfit = false;
+        if (!m.historical) {
+            affectsProfit = (m.date > lastResetDate);
+        } else {
+            affectsProfit = (m.affectProfit && m.id > resetTimestamp);
+        }
+
+        if (affectsProfit) { 
             if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; 
         }
         let isAfterCap = false;
@@ -533,8 +542,9 @@ function updateUI() {
         
         let creditActionHtml = isCredit ? `<button class="btn-icon" style="color:#25D366" onclick="openCreditReleaseModal(${m.id})"><i class="fas fa-handshake"></i></button>` : '';
 
-        // Detalle dinámico para avisar visualmente si un histórico está afectando o no el cuadro
-        let historialTag = m.historical ? ` (HISTÓRICO${m.affectProfit ? ' - AFECTA CUADRO' : ''})` : '';
+        // Detalle dinámico inteligente para saber si el histórico afecta el periodo activo o si ya pertenece a un periodo archivado
+        let isActivelyAffecting = m.historical && m.affectProfit && m.id > resetTimestamp;
+        let historialTag = m.historical ? ` (HISTÓRICO${m.affectProfit ? (isActivelyAffecting ? ' - AFECTA CUADRO' : ' - PERIODO ANTERIOR') : ''})` : '';
 
         body.innerHTML += `<tr class="${isCap ? 'row-cap-base' : (isCredit ? 'row-credit-pending' : '')}">
             <td style="white-space:nowrap">${getFormatedDate(m.date)}</td>
@@ -988,6 +998,10 @@ function saveEditMovement(id) {
         movements[mIdx].amount = newAmt; movements[mIdx].desc = newDsc; movements[mIdx].method = newMethod; movements[mIdx].type = newType;
         movements[mIdx].historical = wasHistorical;
         movements[mIdx].affectProfit = wasAffectProfit;
+        
+        // REPARADO QUIRÚRGICAMENTE: Si el histórico se configuró para afectar ganancias, actualizamos su ID con la estampa de tiempo de HOY para reactivarlo en el periodo corriente
+        if (wasHistorical && wasAffectProfit) { movements[mIdx].id = Date.now(); }
+
         if (origType !== 'CAP_BASE') { movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString(); }
         localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Cambios aplicados."); 
     }
