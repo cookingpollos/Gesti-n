@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión Total 7.8.3 - Edición Nube</title>
+<title>Gestión Total 7.8.5 - Edición Nube</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -106,7 +106,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="login-screen">
     <div id="login-logo-area"></div>
-    <div class="version-tag">VERSIÓN 7.8.3 (NUBE)</div>
+    <div class="version-tag">VERSIÓN 7.8.5 (NUBE)</div>
     <input type="password" id="pin" class="pin-input" placeholder="****" maxlength="4" inputmode="numeric">
     <button class="btn btn-in" onclick="validatePin()">ENTRAR</button>
 </div>
@@ -163,7 +163,7 @@ input:checked + .slider:before { transform: translateX(20px); }
                     <input type="text" id="c-keyword" placeholder="Ej: Gasolina, Pollo..." style="margin-bottom:10px;">
                     
                     <div class="toggle-box" style="margin-bottom:12px; background:#000;">
-                        <span>INCLUIR AJUSTES DE CAPITAL</span>
+                        <span>INCLUIR USO EXTERNO</span>
                         <label class="switch">
                             <input type="checkbox" id="include-adj-report">
                             <span class="slider"></span>
@@ -257,7 +257,7 @@ input:checked + .slider:before { transform: translateX(20px); }
             </div>
         </div>
     </div>
-    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.8.3 (NUBE)</div>
+    <div class="version-tag" style="margin-top: 20px;">VERSIÓN 7.8.5 (NUBE)</div>
 </div>
 
 <div id="help-card">
@@ -502,7 +502,8 @@ function updateUI() {
     movements.forEach(m => {
         if (m.type === 'CREDIT_PENDING' || m.method === 'USO EXTERNO') return;
 
-        if (m.date > lastResetDate && !m.historical) { 
+        // Si es histórico pero tiene activo el switch de afectar ganancias, se suma o resta en el cuadro principal
+        if ((m.date > lastResetDate && !m.historical) || m.affectProfit) { 
             if (m.type === 'IN') tin += m.amount; else if(m.type === 'OUT') tout += m.amount; 
         }
         let isAfterCap = false;
@@ -512,6 +513,7 @@ function updateUI() {
         if((!lastCapEfectivo && m.method === 'EFECTIVO') || (!lastCapBanco && m.method !== 'EFECTIVO') || isAfterCap) {
             if(m.type !== 'CAP_BASE') {
                 let effect = (m.type === 'IN' || m.type === 'ADJ_IN') ? m.amount : -m.amount;
+                // El banco y efectivo nunca se verán afectados si es histórico (independientemente del switch)
                 if (!m.historical) { if (m.method === 'EFECTIVO') mCash += effect; else mBank += effect; }
             }
         }
@@ -531,9 +533,12 @@ function updateUI() {
         
         let creditActionHtml = isCredit ? `<button class="btn-icon" style="color:#25D366" onclick="openCreditReleaseModal(${m.id})"><i class="fas fa-handshake"></i></button>` : '';
 
+        // Detalle dinámico para avisar visualmente si un histórico está afectando o no el cuadro
+        let historialTag = m.historical ? ` (HISTÓRICO${m.affectProfit ? ' - AFECTA CUADRO' : ''})` : '';
+
         body.innerHTML += `<tr class="${isCap ? 'row-cap-base' : (isCredit ? 'row-credit-pending' : '')}">
             <td style="white-space:nowrap">${getFormatedDate(m.date)}</td>
-            <td>${m.desc}<br><small>${m.method}${isCap ? ' [SALDO FIJADO]' : (isCredit ? ' [CRÉDITO PENDIENTE]' : '')}</small></td>
+            <td>${m.desc}<br><small>${m.method}${isCap ? ' [SALDO FIJADO]' : (isCredit ? ' [CRÉDITO PENDIENTE]' : '')}${historialTag}</small></td>
             <td style="text-align:center">${imgBtn}</td>
             <td class="${colorClass}" style="text-align:right; font-weight:bold;">₡${formatVisual(effect)}</td>
             <td style="text-align:right; white-space:nowrap;">
@@ -605,7 +610,7 @@ function processTableFile(input) {
 
 function exportDataBackup() {
     const backupPackage = {
-        version: "7.8.3", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
+        version: "7.8.5", exportDate: new Date().toISOString(), copo_pin_hash: secure_pin_hash, copo_data: movements, copo_staff: staff, copo_cierres: cierres, copo_trash: trashMovements, copo_virtual_profit: virtualProfitBase, copo_last_reset: lastResetDate, bizData: bizData
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPackage));
     const downloadAnchor = document.createElement('a');
@@ -696,7 +701,7 @@ function openStaffHistory(i) {
         staff[i].shifts.forEach(sh => {
             let det = "", colorClass = sh.earned >= 0 ? 'profit' : 'expense', actionBtnHtml = `<button class="btn-ver-cierre" onclick="viewStaffShiftInvoice(${i}, ${sh.id})">VER</button>`;
             if(sh.type === 'SHIFT') det = `${getFormatedTime(sh.ord)} ord ${sh.ext > 0 ? '+ ' + getFormatedTime(sh.ext) + ' ext' : ''}`;
-            else if(sh.type === 'ADVANCE') det = `<i class="fas fa-hand-holding-usd"></i> ${sh.desc || "Adelanto"}`;
+            else if(sh.type === 'ADVANCE') det = `<i class="fas fa-handholding-usd"></i> ${sh.desc || "Adelanto"}`;
             else if(sh.type === 'AGUINALDO') det = `<i class="fas fa-piggy-bank"></i> ${sh.desc}`; 
             else if(sh.type === 'PAYMENT_SUELDO') { det = `<i class="fas fa-check"></i> ${sh.desc}`; colorClass = 'adj-color'; }
             else if(sh.type === 'PAYMENT_AGUINALDO') { det = `<i class="fas fa-gift"></i> Pago Aguinaldo`; colorClass = 'adj-color'; }
@@ -946,6 +951,17 @@ function editMovement(id) {
                 <button class="btn ${m.type === 'IN' || m.type === 'ADJ_IN' || m.type === 'CREDIT_PENDING' ? 'btn-in' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='IN'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📥 INGRESO / ENTRADA</button>
                 <button class="btn ${m.type === 'OUT' || m.type === 'ADJ_OUT' ? 'btn-out' : 'btn-adj'}" onclick="document.getElementById('temp-dir').value='OUT'; updateEditTypeUI(this)" style="padding:10px; font-size:0.7rem;">📤 EGRESO / SALIDA</button>
             </div><input type="hidden" id="temp-dir" value="${m.type.includes('IN') || m.type === 'CREDIT_PENDING' ? 'IN' : 'OUT'}"><input type="hidden" id="is-adj-orig" value="${m.type.startsWith('ADJ_') ? 'true' : 'false'}"><input type="hidden" id="orig-type" value="${m.type}">`;
+            
+        if (m.historical) {
+            html += `<div class="toggle-box" style="margin-bottom:12px; background:#000;">
+                <span>AFECTAR CUADRO DE GANANCIAS</span>
+                <label class="switch">
+                    <input type="checkbox" id="edit-affect-profit" ${m.affectProfit ? 'checked' : ''}>
+                    <span class="slider"></span>
+                </label>
+            </div>`;
+        }
+        html += `<input type="hidden" id="is-historical" value="${m.historical ? 'true' : 'false'}">`;
     }
     openModal("Editar Registro", html + `<button class="btn btn-in" onclick="saveEditMovement(${id})">GUARDAR CAMBIOS</button></div>`);
 }
@@ -959,6 +975,10 @@ function saveEditMovement(id) {
         const newAmt = cleanAmount(document.getElementById('edit-amt').value), newDsc = document.getElementById('edit-dsc').value;
         const newMethod = document.getElementById('temp-method').value, newDir = document.getElementById('temp-dir').value;
         const isAdjOrig = document.getElementById('is-adj-orig').value === 'true', origType = document.getElementById('orig-type').value;
+        
+        const isHistInput = document.getElementById('is-historical');
+        const wasHistorical = (isHistInput && isHistInput.value === 'true');
+        const wasAffectProfit = wasHistorical ? document.getElementById('edit-affect-profit').checked : (movements[mIdx].affectProfit || false);
 
         let newType = newDir;
         if (origType === 'CAP_BASE') { newType = 'CAP_BASE'; } 
@@ -966,6 +986,8 @@ function saveEditMovement(id) {
         else if (isAdjOrig) { newType = (newDir === 'IN') ? 'ADJ_IN' : 'ADJ_OUT'; }
 
         movements[mIdx].amount = newAmt; movements[mIdx].desc = newDsc; movements[mIdx].method = newMethod; movements[mIdx].type = newType;
+        movements[mIdx].historical = wasHistorical;
+        movements[mIdx].affectProfit = wasAffectProfit;
         if (origType !== 'CAP_BASE') { movements[mIdx].date = new Date(document.getElementById('edit-date').value).toISOString(); }
         localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Cambios aplicados."); 
     }
@@ -1011,8 +1033,20 @@ function searchInPeriod() {
     
     movements.forEach(m => { 
         if(m.date >= fT && m.date <= tT && (kw === "" || m.desc.toLowerCase().includes(kw))) { 
-            if((m.type==='IN' || m.type==='OUT') || (incAdj && m.type.startsWith('ADJ'))) { 
-                if(m.type.includes('IN')) i+=m.amount; else e+=m.amount; 
+            if (m.type === 'CAP_BASE' || m.type === 'CREDIT_PENDING') return;
+
+            // REPARADO QUIRÚRGICAMENTE: Identificamos si el movimiento pertenece a uso externo o ajustes
+            let isUsoExterno = (m.method === 'USO EXTERNO' || m.type === 'ADJ_IN' || m.type === 'ADJ_OUT');
+            
+            // Si es un movimiento de uso externo y el switch está APAGADO, lo brincamos.
+            // Si el switch está ENCENDIDO, se lo salta este 'if' y se procesa transparente con todo lo demás.
+            if (isUsoExterno && !incAdj) return;
+
+            if (m.type === 'IN' || m.type === 'ADJ_IN') { 
+                i += m.amount; 
+                matches.push(m); 
+            } else if (m.type === 'OUT' || m.type === 'ADJ_OUT') { 
+                e += m.amount; 
                 matches.push(m); 
             }
         } 
@@ -1096,12 +1130,22 @@ function openHistoryLoader() {
             <option value="TRANSFERENCIA">🏦 TRANSF.</option>
             <option value="USO EXTERNO">💼 USO EXTERNO</option>
         </select>
+        <div class="toggle-box" style="margin-bottom:15px; background:#000;">
+            <span>AFECTAR CUADRO DE GANANCIAS</span>
+            <label class="switch">
+                <input type="checkbox" id="old-affect-profit">
+                <span class="slider"></span>
+            </label>
+        </div>
         <button class="btn btn-in" onclick="saveOldMove()">GUARDAR EN CUADRO</button>
     </div>`); 
 }
 function saveOldMove() { 
     const d = document.getElementById('old-date').value, a = cleanAmount(document.getElementById('old-amt').value), s = document.getElementById('old-dsc').value, t = document.getElementById('old-type').value, m = document.getElementById('old-method').value; if(!d || !a || !s) return showMsg("Faltan datos"); 
-    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), img: "" }); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Registro histórico añadido.");
+    
+    const affectProfit = document.getElementById('old-affect-profit').checked;
+    
+    movements.unshift({ id: Date.now(), type: t, amount: a, desc: s, method: m, date: new Date(d + "T12:00:00").toISOString(), img: "", historical: true, affectProfit: affectProfit }); localStorage.setItem('copo_data', JSON.stringify(movements)); updateUI(); closeModal('history-modal'); showMsg("Registro histórico añadido.");
 }
 </script>
 </body>
